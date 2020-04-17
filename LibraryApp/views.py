@@ -9,7 +9,7 @@ import os
 
 @app.route('/')
 def index():
-    admin = Admin.query.filter(Admin.user_name=="天下无敌的ls").first()
+    admin = Admin.query.filter(Admin.user_name=="ls").first()
     return "<h1>欢迎来到主页！{}</h1>".format(admin.user_name)
 
 @app.route('/login')
