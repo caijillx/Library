@@ -27,8 +27,8 @@ class Book(db.Model):
     name = db.Column(db.String(30))
     author = db.Column(db.String(30))
     publisher = db.Column(db.String(30))
-    pub_date = db.Column(db.String)
-    amount = db.Column(INTEGER(11))
+    pub_date = db.Column(db.String(30))
+    amount = db.Column(db.Integer)
     agent_id = db.Column(db.ForeignKey('admin.user_id'), index=True)
 
     agent = db.relationship('Admin')
