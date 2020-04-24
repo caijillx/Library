@@ -38,4 +38,10 @@ def login():
     return render_template('orderbook.html')
 
 
+# 还书界面
+@app.route('/returnbook')
+def login():
+    return render_template('returnbook.html')
+
+
 i = 1
