@@ -42,6 +42,8 @@ class BookInfo(db.Model):
     location = db.Column(db.String(30))
     status = db.Column(db.String(30))
 
+    agent_id = db.Column(db.ForeignKey('admin.user_id'), index=True)
+    agent = db.relationship('Admin')
     book = db.relationship('Book')
 
 
