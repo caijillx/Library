@@ -37,7 +37,7 @@ def orderbook():
 
 
 # 还书界面
-@app.route('/returnbook',methods=['GET','POST'])
+@app.route('/returnbook')
 def returnbook():
     return render_template('returnbook.html')
 
