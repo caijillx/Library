@@ -10,7 +10,6 @@ import os
 # 导航界面
 @app.route('/')
 def index():
-    admin = Admin.query.filter(Admin.user_name=="ys").first()
     return render_template('index.html')
 
 # 登录界面
@@ -38,7 +37,7 @@ def orderbook():
 
 
 # 还书界面
-@app.route('/returnbook')
+@app.route('/returnbook',methods=['GET','POST'])
 def returnbook():
     return render_template('returnbook.html')
 
