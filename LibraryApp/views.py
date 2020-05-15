@@ -11,8 +11,7 @@ import os
 @app.route('/')
 def index():
     admin = Admin.query.filter(Admin.user_name=="ys").first()
-    return "<h1>欢迎来到主页！{}</h1>".format(admin.user_name)
-
+    return render_template('index.html')
 
 # 登录界面
 @app.route('/login')
@@ -22,26 +21,25 @@ def login():
 
 # 入库管理界面
 @app.route('/putin')
-def login():
+def putin():
     return render_template('putin.html')
 
 
 # 借书界面
 @app.route('/borrowbook')
-def login():
+def borrowbook():
     return render_template('borrowbook.html')
 
 
 # 预约界面
 @app.route('/orderbook')
-def login():
+def orderbook():
     return render_template('orderbook.html')
 
 
 # 还书界面
 @app.route('/returnbook')
-def login():
+def returnbook():
     return render_template('returnbook.html')
 
 
-i = 1
