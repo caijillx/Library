@@ -1,4 +1,63 @@
 {% extends "demo.html" %}
+    <!-- 另外的模版-->
+    <link rel="shortcut icon" type="image/png" href="static/assets/images/icon/favicon.ico">
+    <link rel="stylesheet" href="static/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/assets/css/themify-icons.css">
+    <link rel="stylesheet" href="static/assets/css/metisMenu.css">
+    <link rel="stylesheet" href="static/assets/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="static/assets/css/slicknav.min.css">
+    <!-- amchart css -->
+    <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+    <!-- others css -->
+    <link rel="stylesheet" href="static/assets/css/typography.css">
+    <link rel="stylesheet" href="static/assets/css/default-css.css">
+    <link rel="stylesheet" href="static/assets/css/styles.css">
+    <link rel="stylesheet" href="static/assets/css/responsive.css">
+    <!-- modernizr css -->
+    <script src="static/assets/js/vendor/modernizr-2.8.3.min.js"></script>
+
 {% block content %}
-    <p>借书</p>
+    {% if books %}
+        <ul>
+            {% for book in books %}
+                <li><a href = 'borrowbook?bookisbn={{ book.isbn }}'>{{ book.isbn }}</a></li>
+                <li>{{ book.name }}</li>
+            {% endfor %}
+        </ul>
+    {% elif bookinfo %}
+        <table class="table text-center">
+            <thead class="text-uppercase bg-primary">
+                <tr class="text-white">
+                    <th scope="col">ID</th>
+                    <th scope="col">Isbn</th>
+                    <th scope="col">location</th>
+                    <th scope="col">status</th>
+                    <th scope="col">action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in bookinfo %}
+                <tr>
+                    <form class="ui form segment" id="form{{ loop.index }}" method="post" action="/borrowbook">
+                    <th scope="row" >{{ book.book_id }}</th>
+                    <td>{{ book.isbn }}</td>
+                    <td>{{ book.location }}</td>
+                    <td>{{ book.status }}</td>
+                    <input type='hidden' name='book_id' value='{{ book.book_id }}'>
+                    <input type='hidden' name='isbn' value='{{ book.isbn }}'>
+                    {% if book.status == "未借出" %}
+                        <td style="text-align: center;">
+                            <input type="button" value="借书"  onclick="borrowbookajaxForm({{ loop.index }})"/>
+                        </td>
+                    {% else %}
+                        <td>不可借</td>
+                    {% endif %}
+                    </form>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock %}
