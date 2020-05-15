@@ -11,6 +11,9 @@ class Admin(db.Model):
     pswd = db.Column(db.String(30))
 
 
+    def check_pwd(self,pwd):
+        return self.pswd == pwd
+
 class Reader(db.Model):
     __tablename__ = 'reader'
 
