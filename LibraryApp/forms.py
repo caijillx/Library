@@ -39,8 +39,3 @@ class LoginForm(FlaskForm):
         }
     )
 
-    # 账号验证
-    def validate_name(self, field):
-        name = field.data
-        if Admin.query.filter_by(user_name=name).count() == 0:
-            raise ValidationError("账号不存在！")
