@@ -1,4 +1,207 @@
 {% extends "demo.html" %}
 {% block content %}
-    <p>入库管理</p>
+    <!--新增滚动图片模态框-->
+    <div class="modal fade bs-example-modal-lg" id="bookModal" tabindex="-1" role="dialog"
+         aria-labelledby="picModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="picModalLabel">书本管理</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <form class="form-horizontal">
+                            <div class="col-sm-12" id="input_area">
+                                {#                                <div class="col-sm-9" style="margin-left: 15px">#}
+                                {#                                    <div class="form-group">#}
+                                {#                                        <label>请输入书本id:</label>#}
+                                {#                                        <input type="text" name="bookid">#}
+                                {#                                        <label>请选择所在地:</label>#}
+                                {#                                        <select>#}
+                                {#                                            <option value="图书阅览室">图书阅览室</option>#}
+                                {#                                            <option value="图书流通室">图书流通室</option>#}
+                                {#                                        </select>#}
+                                {##}
+                                {#                                    </div>#}
+                                {#                                </div>#}
+                            </div>
+                            <div class="col-sm-9" style="margin-left: 15px">
+                                <div class="form-group">
+                                    <table style="width: 100%">
+                                        <caption>已存在书本信息</caption>
+                                        <thead>
+                                        <tr>
+                                            <th>书本id</th>
+                                            <th>存放地点</th>
+                                            <th>状态</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="bookinfo">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">
+                        <i class="fa fa-save" onclick="addbook_info()">添加</i>
+                    </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> 关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="ui primary button" onclick="">添加书目</button>
+    <table class="table" id="putin">
+        <caption>已存在书目</caption>
+        <thead>
+        <tr>
+            <th>ISBN</th>
+            <th>书名</th>
+            <th>作者</th>
+            <th>出版社</th>
+            <th>出版日期</th>
+            <th>数量</th>
+            <th>经办人</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for book in books %}
+            <tr class="active">
+                <td>{{ book.isbn }}</td>
+                <td>{{ book.name }}</td>
+                <td>{{ book.author }}</td>
+                <td>{{ book.publisher }}</td>
+                <td>{{ book.pub_date }}</td>
+                <td>{{ book.amount }}</td>
+                <td>{{ book.agent.user_name }}</td>
+                <td>
+                    <button class="ui primary button" onclick="change_amount('{{ book.isbn }}')">修改数量</button>
+                    <button class="ui primary button" onclick="guanli('{{ book.isbn }}')">管理</button>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
+
+{% block js %}
+    <script>
+        var ISBN = "";
+
+        function change_amount(isbn) {
+            modals.confirm("确认要修改该书目的数量吗？", function () {
+                var re = /^[0-9]+.?[0-9]*$/;
+                var num = prompt("请输入数目的数量！");
+                if (!re.test(num)) {
+                    alert("请输入数字");
+                } else {
+                    $.ajax({
+                        type: "post",
+                        url: "{{ url_for('change_isbn_num') }}",
+                        dataType: "json",
+                        data: {isbn: isbn, num: num},
+                        success: function (data) {
+                            if (data.state) {
+                                modals.ok(data.message, function () {
+                                    self.location.reload();
+                                });
+                            } else {
+                                modals.error(data.message);
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            modals.error("请求错误,请联系管理员！");
+                        }
+                    });
+                }
+            });
+        }
+
+
+        function guanli(isbn) {
+            ISBN = isbn;
+            var re = /^[1-9]$/;
+            var num = prompt("请输入添加的数量！(1-9以内)");
+            if (num == null)
+                return;
+            else if (!re.test(num) || !(num.length >= 1)) {
+                alert("请输入1-9以内的数字");
+                return;
+            }
+            $("#input_area").html("");
+            $("#bookinfo").html("");
+            for (i = 0; i < num - '0'; i++)
+                $("#input_area").append("<div class=\"col-sm-9\" style=\"margin-left: 15px\">\n" +
+                    "<div class=\"form-group\">\n" +
+                    "<label>请输入书本id:</label>\n" +
+                    "<input class=\"id_input\" type=\"text\" name=\"bookid\">\n" +
+                    "<label>请选择所在地:</label>\n" +
+                    "<select class=\"loc_select\" >\n" +
+                    "<option value=\"图书阅览室\">图书阅览室</option>\n" +
+                    "<option value=\"图书流通室\">图书流通室</option>\n" +
+                    "</select>\n" +
+                    "\n" +
+                    "</div>\n" +
+                    "</div>");
+            $.ajax({
+                type: "post",
+                url: "{{ url_for('get_BI_by_ibsn') }}",
+                dataType: "json",
+                data: {isbn: isbn},
+                success: function (data) {
+                    console.log(data);
+                    for (i = 0; i < data.length; i++)
+                        $("#bookinfo").append("<tr><td>" + data[i].book_id + "</td><td>" + data[i].location + "</td><td>" + data[i].status + "</td></tr>")
+                }
+            });
+            $("#bookModal").modal('show');
+        }
+
+        function addbook_info() {
+            var inputs = document.getElementsByClassName("id_input");
+            var selects = document.getElementsByClassName("loc_select");
+            var idls = [];
+            var locls = [];
+            for (i = 0; i < inputs.length; ++i) {
+                idls.push(inputs[i].value);
+                locls.push(selects[i].value);
+            }
+            console.log(idls, locls);
+            $.ajax({
+                type: "post",
+                url: "{{ url_for('add_bookinfo') }}",
+                dataType: "json",
+                traditional: true,
+                data: {
+                    "book_id": JSON.stringify(idls),
+                    "location": JSON.stringify(locls),
+                    "isbn": ISBN,
+                    "agent_id": "{{ agent_id }}"
+                },
+                success: function (data) {
+                    if (data.state) {
+                        modals.ok(data.message, function () {
+                            self.location.reload();
+                        });
+                    } else {
+                        modals.error(data.message);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    modals.error("请求错误,请联系管理员！");
+                }
+            });
+        }
+    </script>
 {% endblock %}
