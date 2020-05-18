@@ -7,6 +7,8 @@ from LibraryApp.models import *
 from functools import wraps
 import json
 import datetime
+
+
 import os
 
 
@@ -131,10 +133,9 @@ def borrowbook():
         print("isbn:"+isbn)
         print("id:"+id)
         print("user_id:"+user_id)
-        id = Reader.query.filter_by(id=id).first()
-        if id != None:
+        reade_id = Reader.query.filter_by(id=id).first()
+        if reade_id != None:
             #插入借书记录
-            BorrowInfo.query.all()
             borrow_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
             due_date = (datetime.datetime.now() + datetime.timedelta(days=60)).strftime("%Y-%m-%d")  # 60天后
             # borroInfo = BorrowInfo(reader_id=id,book_id=book_id,borrow_date=borrow_date,due_date=due_date,agent_id=user_id)
@@ -143,7 +144,25 @@ def borrowbook():
             # 上面的借书记录插入数据库写不通！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
             # 除了插入借书记录还需要更改书的状态
             # 所需数据已给出：isbn/book_id
-            return jsonify({"success": 1001, "msg": "借阅成功"})#由borrowbook的ajax接受，弹窗显示
+            try:
+                borroInfo = BorrowInfo()
+                borroInfo.reader_id = id
+                borroInfo.book_id = book_id
+                #borroInfo.borrow_date = borrow_date
+                borroInfo.borrow_date = "2020-05-18"
+                borroInfo.due_date = due_date
+                borroInfo.agent_id = user_id
+                db.session.add(borroInfo)
+                db.session.commit()
+                bookInfo = BookInfo.query.filter(BookInfo.book_id == book_id).first()
+                bookInfo.status = "已借出"
+                db.session.commit()
+                print("book_status change success")
+                return jsonify({"success": 1001, "msg": "借阅成功"})#由borrowbook的ajax接受，弹窗显示
+            except Exception as e:
+                print(e)
+                return jsonify({"error": 200, "msg": e})#由borrowbook的ajax接受，弹窗显示
+
         else:
             #id在数据库中找不到
             return jsonify({"error": 201, "msg": "没有这个id!"})
