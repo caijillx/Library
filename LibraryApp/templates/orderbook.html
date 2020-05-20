@@ -1,4 +1,124 @@
 {% extends "demo.html" %}
+<link rel="shortcut icon" type="image/png" href="static/assets/images/icon/favicon.ico">
+    <link rel="stylesheet" href="static/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/assets/css/themify-icons.css">
+    <link rel="stylesheet" href="static/assets/css/metisMenu.css">
+    <link rel="stylesheet" href="static/assets/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="static/assets/css/slicknav.min.css">
+    <!-- amchart css -->
+    <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+    <!-- others css -->
+    <link rel="stylesheet" href="static/assets/css/typography.css">
+    <link rel="stylesheet" href="static/assets/css/default-css.css">
+    <link rel="stylesheet" href="static/assets/css/styles.css">
+    <link rel="stylesheet" href="static/assets/css/responsive.css">
+    <!-- modernizr css -->
+    <script src="static/assets/js/vendor/modernizr-2.8.3.min.js"></script>
 {% block content %}
-    <p>预约</p>
+    {% if readers %}
+        <div class="row align-items-center">
+                    <!-- nav and search button -->
+                    <div class="col-md-6 col-sm-8 clearfix">
+                        <div class="nav-btn pull-left">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="search-box pull-left">
+                            <form action="searchreader">
+                                <input type="text" name="keywords" placeholder="Search..." required>
+                                <i class="ti-search"></i>
+                            </form>
+                        </div>
+                    </div>
+        </div>
+        <table class="table text-center">
+            <thead class="text-uppercase bg-primary">
+                <tr class="text-white">
+                    <th scope="col">id</th>
+                    <th scope="col">姓名</th>
+                    <th scope="col">电话</th>
+                    <th scope="col">邮箱</th>
+                    <th scope="col">管理</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for reader in readers %}
+                <tr>
+                    <th scope="row">{{ reader.id }}</th>
+                    <th scope="row">{{ reader.name }}</th>
+                    <th scope="row">{{ reader.phone }}</th>
+                    <th scope="row">{{ reader.Email }}</th>
+                    <th scope="row"><a href = 'orderbook?id={{ reader.id }}'>查看</a></th>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    {% elif readerinfo %}
+        <table class="table text-center">
+            <thead class="text-uppercase bg-primary">
+                <tr class="text-white">
+                    <th scope="col">Id</th>
+                    <th scope="col">Isbn</th>
+                    <th scope="col">日期期限</th>
+                    <th scope="col">状态</th>
+                    <th scope="col">经办人</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reader in readerinfo %}
+                <tr>
+                    <form class="ui form segment" id="form{{ loop.index }}" method="post" action="/getbook">
+                    <th scope="row">{{ reader.reader_id }}</th>
+                    <th scope="row">{{ reader.isbn }}</th>
+                    <th scope="row">{{ reader.reserve_date }}</th>
+                    <th scope="row">{{ reader.status }}</th>
+                    <th scope="row">{{ reader.agent_id }}</th>
+                    <input type='hidden' name='book_id' value='{{ reader.reader_id }}'>
+                    <input type='hidden' name='isbn' value='{{ reader.isbn }}'>
+                    {% if book.status == "可取" %}
+                        <th scope="row">
+                            <button class="ui primary button" onclick="getbookajaxForm({{ loop.index }})">
+                                取书
+                            </button>
+                        </th>
+                    {% else %}
+                        <th scope="row">不可取</th>
+                    {% endif %}
+                    </form>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        无预约
+    {% endif %}
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+   function getbookajaxForm(index){
+       var formname = "form" + index;
+       var id=prompt("请输入你的id","");
+       var form= new FormData(document.getElementById(formname));
+       form.set('id',id);
+        $.ajax({
+            url:"{{ url_for('borrowbook') }}",
+            type:"post",
+            data:form,
+            dataType: 'json',
+            processData:false,
+            contentType:false,
+            success:function(data){
+                 alert(data['msg']);
+                 window.location.reload()
+            },
+            error:function(e){
+                    alert("error");
+            }
+        })
+    }
+</script>
 {% endblock %}
