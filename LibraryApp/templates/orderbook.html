@@ -65,6 +65,7 @@
                     <th scope="col">日期期限</th>
                     <th scope="col">状态</th>
                     <th scope="col">经办人</th>
+                    <th scope="col">action</th>
                 </tr>
             </thead>
             <tbody>
@@ -76,9 +77,9 @@
                     <th scope="row">{{ reader.reserve_date }}</th>
                     <th scope="row">{{ reader.status }}</th>
                     <th scope="row">{{ reader.agent_id }}</th>
-                    <input type='hidden' name='book_id' value='{{ reader.reader_id }}'>
+                    <input type='hidden' name='reader_id' value='{{ reader.reader_id }}'>
                     <input type='hidden' name='isbn' value='{{ reader.isbn }}'>
-                    {% if book.status == "可取" %}
+                    {% if reader.status == "已通知" %}
                         <th scope="row">
                             <button class="ui primary button" onclick="getbookajaxForm({{ loop.index }})">
                                 取书

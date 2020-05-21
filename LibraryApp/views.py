@@ -136,23 +136,22 @@ def borrowbook():
         print("isbn:"+isbn)
         print("id:"+id)
         print("user_id:"+user_id)
-        reade_id = Reader.query.filter_by(id=id).first()
-        if reade_id != None:
+        reader_id = Reader.query.filter_by(id=id).first()
+        if reader_id != None:
+            #查询读者借书总数有无超过十本
+            bookcount = BorrowInfo.query.filter(BorrowInfo.reader_id == id, BorrowInfo.return_date == None).count()
+            print("bookcount:"+bookcount)
+            if bookcount >= 10:
+                return jsonify({"state": 103, "msg": "借阅成功"})  #超出借书数量
             #插入借书记录
             borrow_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
             due_date = (datetime.datetime.now() + datetime.timedelta(days=60)).strftime("%Y-%m-%d")  # 60天后
-            # borroInfo = BorrowInfo(reader_id=id,book_id=book_id,borrow_date=borrow_date,due_date=due_date,agent_id=user_id)
-            # db.session.add(borroInfo)
-            # db.session.commit()
-            # 上面的借书记录插入数据库写不通！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-            # 除了插入借书记录还需要更改书的状态
-            # 所需数据已给出：isbn/book_id
+
             try:
                 borroInfo = BorrowInfo()
                 borroInfo.reader_id = id
                 borroInfo.book_id = book_id
                 borroInfo.borrow_date = borrow_date
-                #borroInfo.borrow_date = "2020-05-18"
                 borroInfo.due_date = due_date
                 borroInfo.agent_id = user_id
                 db.session.add(borroInfo)
@@ -161,14 +160,14 @@ def borrowbook():
                 bookInfo.status = "已借出"
                 db.session.commit()
                 print("book_status change success")
-                return jsonify({"success": 1001, "msg": "借阅成功"})#由borrowbook的ajax接受，弹窗显示
+                return jsonify({"state": 104, "msg": "借阅成功"})#由borrowbook的ajax接受，弹窗显示
             except Exception as e:
                 print(e)
-                return jsonify({"error": 200, "msg": e})#由borrowbook的ajax接受，弹窗显示
+                return jsonify({"state": 105, "msg": e})#由borrowbook的ajax接受，弹窗显示
 
         else:
             #id在数据库中找不到
-            return jsonify({"error": 201, "msg": "没有这个id!"})
+            return jsonify({"state": 106, "msg": "没有这个id!"})
 
         # return render_template('borrowbook.html', bookinfo=bookinfo_list_dict)
 
@@ -211,7 +210,39 @@ def searchbook():
     # return book_list_json
     return render_template('borrowbook.html', books=book_list_dict)
 
-# 预约界面
+#在预约界面查询读者
+@app.route('/searchreader',methods=['POST','GET'])
+@admin_login_req
+def searchreader():
+    keywords = request.args.get('keywords')
+    #根据姓名搜
+    reader_list = Reader.query.filter(Reader.name.like("%"+keywords+"%") if keywords is not None else ""
+                                  ).all()
+    #根据id搜
+    if not reader_list:
+        reader_list = Reader.query.filter(Reader.id.like("%" + keywords + "%") if keywords is not None else ""
+                                      ).all()
+
+
+    print('reader_list', reader_list)
+    reader_list_dict = []
+    for reader in reader_list:
+        print(reader.id)
+        reader_list_dict.append(
+            {
+                'id': reader.id,
+                'name': reader.name,
+                'phone': reader.phone,
+                'Email': reader.Email
+            }
+        )
+    # print(book_list_dict)
+    # book_list_json = json.dumps(book_list_dict)
+
+    # return book_list_json
+    return render_template('orderbook.html', readers=reader_list_dict)
+
+# 预约界面(主要显示读者的预约信息)
 @app.route('/orderbook')
 @admin_login_req
 def orderbook():
@@ -240,7 +271,7 @@ def orderbook():
         for reserve in reserves:
             reserveinfo_list_dict.append(
                 {
-                    'reader_id': reserve.readerid,
+                    'reader_id': reserve.reader_id,
                     'isbn': reserve.isbn,
                     'reserve_date': reserve.reserve_date,
                     'status': reserve.status,
@@ -274,11 +305,31 @@ def doreservebook():
     id = request.form.get('id')
     print("genge")
     print(isbn+','+id)
+    reader_id = Reader.query.filter_by(id=id).first()
+    if not reader_id:
+        return json.dumps({"state": 106, "msg": "没有这个id!"})
+    #查询是否已有预约记录
+    have_reserve = ReserveInfo.query.filter(ReserveInfo.reader_id == id, ReserveInfo.isbn == isbn, ReserveInfo.status !="已完成").all()
+    if have_reserve:
+        return json.dumps({"state": 204, "msg": "您已预约该书！"})
+    #插入预约信息(reader_id,isbn,agent_id)
+    user_id = session['user_id']  # session中取经办人id
+    print(user_id)
+    reserInfo = ReserveInfo()
+    reserInfo.reader_id = id
+    reserInfo.isbn = isbn
+    reserInfo.reserve_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
+    reserInfo.status = "等待"
+    reserInfo.agent_id = user_id
     """
-    还没做
+    reserve_date需讨论
     """
-    return json.dumps({"state": 204, "msg": "预约成功"})
-
+    try:
+        db.session.add(reserInfo)
+        db.session.commit()
+        return json.dumps({"state": 205, "msg": "预约成功"})
+    except Exception as e:
+        return json.dumps({"state": 206, "msg": e})
 # 还书界面
 @app.route('/returnbook')
 @admin_login_req
