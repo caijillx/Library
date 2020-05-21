@@ -67,7 +67,7 @@ def is_reader_id_correct(reader_id):
     :param reader_id
     :return: True代表格式正确，False代表格式错误。
     '''
-    result = re.match(r'C[0-9][0-9][0-9]\.[0-9]', reader_id, re.I)
+    result = re.match(r'[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]', reader_id, re.I)
     return False if result == None else True
 
 
@@ -120,6 +120,12 @@ def send_email(to_addr, context):
 
 
 def reserve_email(reader_id, book_id):
+    '''
+    发送邮件催预约人取书
+    :param reader_id:
+    :param book_id:
+    :return:
+    '''
     if is_reader_id_correct(reader_id) and is_book_id_correct(book_id):
         reader_obj = Reader.query.filter(Reader.id == reader_id).first()
         reader_name = reader_obj.name
@@ -130,6 +136,7 @@ def reserve_email(reader_id, book_id):
                                                                                                     reader_id,
                                                                                                     book_name,
                                                                                                     isbn)
+        print(context)
         send_email(to_addr, context)
 
 def due_email():
