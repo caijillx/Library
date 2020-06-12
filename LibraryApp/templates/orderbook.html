@@ -62,8 +62,10 @@
                 <tr class="text-white">
                     <th scope="col">Id</th>
                     <th scope="col">Isbn</th>
-                    <th scope="col">日期期限</th>
+                    <th scope="col">图书名</th>
+                    <th scope="col">预约日期</th>
                     <th scope="col">状态</th>
+                    <th scope="col">通知日期</th>
                     <th scope="col">经办人</th>
                     <th scope="col">action</th>
                 </tr>
@@ -74,8 +76,10 @@
                     <form class="ui form segment" id="form{{ loop.index }}" method="post" action="/getbook">
                     <th scope="row">{{ reader.reader_id }}</th>
                     <th scope="row">{{ reader.isbn }}</th>
+                    <th scope="row">{{ reader.book_name }}</th>
                     <th scope="row">{{ reader.reserve_date }}</th>
                     <th scope="row">{{ reader.status }}</th>
+                    <th scope="row">{{ reader.inform_date }}</th>
                     <th scope="row">{{ reader.agent_id }}</th>
                     <input type='hidden' name='reader_id' value='{{ reader.reader_id }}'>
                     <input type='hidden' name='isbn' value='{{ reader.isbn }}'>

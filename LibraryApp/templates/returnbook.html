@@ -1,4 +1,149 @@
 {% extends "demo.html" %}
+<link rel="shortcut icon" type="image/png" href="static/assets/images/icon/favicon.ico">
+    <link rel="stylesheet" href="static/assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/assets/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/assets/css/themify-icons.css">
+    <link rel="stylesheet" href="static/assets/css/metisMenu.css">
+    <link rel="stylesheet" href="static/assets/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="static/assets/css/slicknav.min.css">
+    <!-- amchart css -->
+    <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+    <!-- others css -->
+    <link rel="stylesheet" href="static/assets/css/typography.css">
+    <link rel="stylesheet" href="static/assets/css/default-css.css">
+    <link rel="stylesheet" href="static/assets/css/styles.css">
+    <link rel="stylesheet" href="static/assets/css/responsive.css">
+    <!-- modernizr css -->
+    <script src="static/assets/js/vendor/modernizr-2.8.3.min.js"></script>
 {% block content %}
-    <p>还书</p>
+    {% if readers %}
+        <div class="row align-items-center">
+                    <!-- nav and search button -->
+                    <div class="col-md-6 col-sm-8 clearfix">
+                        <div class="nav-btn pull-left">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="search-box pull-left">
+                            <form action="searchreader">
+                                <input type="text" name="keywords" placeholder="Search..." required>
+                                <i class="ti-search"></i>
+                            </form>
+                        </div>
+                    </div>
+        </div>
+        <table class="table text-center">
+            <thead class="text-uppercase bg-primary">
+                <tr class="text-white">
+                    <th scope="col">id</th>
+                    <th scope="col">姓名</th>
+                    <th scope="col">电话</th>
+                    <th scope="col">邮箱</th>
+                    <th scope="col">管理</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for reader in readers %}
+                <tr>
+                    <th scope="row">{{ reader.id }}</th>
+                    <th scope="row">{{ reader.name }}</th>
+                    <th scope="row">{{ reader.phone }}</th>
+                    <th scope="row">{{ reader.Email }}</th>
+                    <th scope="row"><a href = 'returnbook?id={{ reader.id }}'>查看</a></th>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    {% elif readerinfo %}
+        <table class="table text-center">
+            <thead class="text-uppercase bg-primary">
+                <tr class="text-white">
+                    <th scope="col">Id</th>
+                    <th scope="col">图书id</th>
+                    <th scope="col">图书名</th>
+                    <th scope="col">借书日期</th>
+                    <th scope="col">还书期限</th>
+                    <th scope="col">还书日期</th>
+                    <th scope="col">罚金</th>
+                    <th scope="col">经办人</th>
+                    <th scope="col">action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reader in readerinfo %}
+                <tr>
+                   <form class="ui form segment" id="form{{ loop.index }}" method="post" action="#">
+                    <th scope="row">{{ reader.reader_id }}</th>
+                    <th scope="row">{{ reader.book_id }}</th>
+                    <th scope="row">{{ reader.book_name }}</th>
+                    <th scope="row">{{ reader.borrow_date }}</th>
+                    <th scope="row">{{ reader.due_date }}</th>
+                    <th scope="row">{{ reader.return_date }}</th>
+                   <th scope="row">{{ reader.fine }}</th>
+                    <th scope="row">{{ reader.agent_id }}</th>
+                    <input type='hidden' name='reader_id' value='{{ reader.reader_id }}'>
+                    <input type='hidden' name='book_id' value='{{ reader.book_id }}'>
+                    <input type='hidden' name='borrow_date' value='{{ reader.borrow_date }}'>
+                    <input type='hidden' name='due_date' value='{{ reader.due_date }}'>
+                   <input type='hidden' name='fine' value='{{ reader.fine }}'>
+                    {% if not reader.return_date %}
+                        <th scope="row">
+                            <button class="ui primary button" onclick="returnbookajaxForm({{ loop.index }})">
+                                还书
+                            </button>
+                        </th>
+                    {% else %}
+                        <th scope="row">已结束</th>
+                    {% endif %}
+                    </form>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        无借书
+    {% endif %}
+{% endblock %}
+{% block js %}
+<script type="text/javascript">
+   function returnbookajaxForm(index){
+       var formname = "form" + index;
+       var form= new FormData(document.getElementById(formname));
+       var x = document.forms[formname]["fine"].value;
+       var fine = parseFloat(x);
+       function del() {
+           if(fine>0.0)
+               if(window.confirm("请支付罚金:"+fine+"元"))
+                   return true;
+               else
+                   return false;
+           else
+               if(window.confirm("无罚金"))
+                   return true;
+               else
+                   return false;
+
+                }
+        if(del()){
+            $.ajax({
+                url:"{{ url_for('doreturnbook') }}",
+                type:"post",
+                data: form,
+                dataType: 'json',
+                processData:false,
+                contentType:false,
+                success:function(data){
+                     alert(data['msg']);
+                     window.location.reload()
+                },
+                error:function(e){
+                        alert("error");
+                }
+            })
+        }
+    }
+</script>
 {% endblock %}

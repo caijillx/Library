@@ -12,6 +12,7 @@ from datetime import datetime
 from LibraryApp.models import *
 from sqlalchemy import and_, or_, not_
 import re
+import datetime
 
 # smtplib 用于邮件的发信动作
 import smtplib
@@ -141,3 +142,24 @@ def reserve_email(reader_id, book_id):
 
 def due_email():
     pass
+
+
+"""
+还书的罚金
+"""
+def fine_of_returnbook(due_date):
+    now_date = datetime.datetime.now()
+    print(now_date,due_date)
+    due_date = due_date.strftime("%Y-%m-%d")+" 00:00:00"
+    print(due_date)
+    due_date = datetime.datetime.strptime(due_date, "%Y-%m-%d %H:%M:%S")
+    deltadate = now_date-due_date
+    #print(deltadate.days)
+    days = deltadate.days
+    if days > 0:
+        fine = days*0.3 #罚金，超一天三毛钱
+        #print("fine:",fine)
+        return fine
+
+    return 0.0 #无罚金
+
