@@ -1,13 +1,13 @@
 # 定义视图
 from LibraryApp import app
-from LibraryApp.func import *
-from flask import render_template, redirect, session, url_for, flash, request,jsonify
+
+from flask import render_template, redirect, session, url_for, flash, request, jsonify
 from LibraryApp.forms import LoginForm
+from LibraryApp.func import fine_of_returnbook, reserve_email
 from LibraryApp.models import *
 from functools import wraps
 import json
 import datetime
-
 
 import os
 
@@ -20,6 +20,7 @@ def admin_login_req(f):
         if "user" not in session:
             return redirect(url_for("login"))
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -71,23 +72,24 @@ def logout():
 def putin():
     books = Book.query.all()
     agent_id = session["user_id"]
-    return render_template('putin.html', books=books, agent_id=agent_id)
+    isbn_list = [book.isbn for book in books]
+    return render_template('putin.html', books=books, agent_id=agent_id, isbns=json.dumps(isbn_list))
 
 
 # 借书界面
 
-@app.route('/borrowbook',methods=['POST','GET'])
+@app.route('/borrowbook', methods=['POST', 'GET'])
 @admin_login_req
 def borrowbook():
-    if request.method == 'GET': #处理get请求
+    if request.method == 'GET':  # 处理get请求
         bookisbn = request.args.get('bookisbn')
-        # print('isbn=', bookisbn)
-        if bookisbn == None:    #isbn为空，则显示所有书的信息
+        print('isbn=', bookisbn)
+        if bookisbn == None:  # isbn为空，则显示所有书的信息
             book_list = Book.query.all()
-            # print('book_list', book_list)
+            print('book_list', book_list)
             book_list_dict = []
             for book in book_list:
-                # print(book.isbn)
+                print(book.isbn)
                 book_list_dict.append(
                     {
                         'isbn': book.isbn,
@@ -100,12 +102,12 @@ def borrowbook():
             # print(book_list_dict)
             # book_list_json = json.dumps(book_list_dict)
 
-            #return book_list_json
-            return render_template('borrowbook.html',books=book_list_dict)
-        book_info = BookInfo.query.filter_by(isbn=bookisbn).all() # isbn不为空，返回具体的书本状态
+            # return book_list_json
+            return render_template('borrowbook.html', books=book_list_dict)
+        book_info = BookInfo.query.filter_by(isbn=bookisbn).all()  # isbn不为空，返回具体的书本状态
         bookinfo_list_dict = []
         for book in book_info:
-            # print(book.isbn)
+            print(book.isbn)
             bookinfo_list_dict.append(
                 {
                     'book_id': book.book_id,
@@ -115,15 +117,15 @@ def borrowbook():
                 }
             )
         return render_template('borrowbook.html', bookinfo=bookinfo_list_dict)
-    else:   #处理post请求
+    else:  # 处理post请求
         book_id = request.form.get('book_id')
         isbn = request.form.get('isbn')
         id = request.form.get('id')
-        user_id = session['user_id'] #session中取经办人id
+        user_id = session['user_id']  # session中取经办人id
         book_info = BookInfo.query.filter_by(isbn=isbn).all()  # isbn不为空，返回具体的书本状态
         bookinfo_list_dict = []
         for book in book_info:
-            # print(book.isbn)
+            print(book.isbn)
             bookinfo_list_dict.append(
                 {
                     'book_id': book.book_id,
@@ -132,18 +134,18 @@ def borrowbook():
                     'status': book.status
                 }
             )
-        # print("book_id:"+book_id)
-        # print("isbn:"+isbn)
-        # print("id:"+id)
-        # print("user_id:"+user_id)
+        print("book_id:" + book_id)
+        print("isbn:" + isbn)
+        print("id:" + id)
+        print("user_id:" + user_id)
         reader_id = Reader.query.filter_by(id=id).first()
         if reader_id != None:
-            #查询读者借书总数有无超过十本
+            # 查询读者借书总数有无超过十本
             bookcount = BorrowInfo.query.filter(BorrowInfo.reader_id == id, BorrowInfo.return_date == None).count()
-            # print("bookcount:"+bookcount)
+            print("bookcount:" + bookcount)
             if bookcount >= 10:
-                return jsonify({"state": 103, "msg": "超出借书数量"})  #超出借书数量
-            #插入借书记录
+                return jsonify({"state": 103, "msg": "借阅成功"})  # 超出借书数量
+            # 插入借书记录
             borrow_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
             due_date = (datetime.datetime.now() + datetime.timedelta(days=60)).strftime("%Y-%m-%d")  # 60天后
 
@@ -159,42 +161,43 @@ def borrowbook():
                 bookInfo = BookInfo.query.filter(BookInfo.book_id == book_id).first()
                 bookInfo.status = "已借出"
                 db.session.commit()
-                # print("book_status change success")
-                return jsonify({"state": 104, "msg": "借阅成功"})#由borrowbook的ajax接受，弹窗显示
+                print("book_status change success")
+                return jsonify({"state": 104, "msg": "借阅成功"})  # 由borrowbook的ajax接受，弹窗显示
             except Exception as e:
                 print(e)
-                return jsonify({"state": 105, "msg": e})#由borrowbook的ajax接受，弹窗显示
+                return jsonify({"state": 105, "msg": e})  # 由borrowbook的ajax接受，弹窗显示
 
         else:
-            #id在数据库中找不到
+            # id在数据库中找不到
             return jsonify({"state": 106, "msg": "没有这个id!"})
 
         # return render_template('borrowbook.html', bookinfo=bookinfo_list_dict)
 
-#借书界面的搜索功能
-@app.route('/searchbook',methods=['POST','GET'])
+
+# 借书界面的搜索功能
+@app.route('/searchbook', methods=['POST', 'GET'])
 @admin_login_req
 def searchbook():
     keywords = request.args.get('keywords')
-    #根据书名搜
-    book_list = Book.query.filter(Book.name.like("%"+keywords+"%") if keywords is not None else ""
+    # 根据书名搜
+    book_list = Book.query.filter(Book.name.like("%" + keywords + "%") if keywords is not None else ""
                                   ).all()
-    #根据isbn搜
+    # 根据isbn搜
     if not book_list:
         book_list = Book.query.filter(Book.isbn.like("%" + keywords + "%") if keywords is not None else ""
                                       ).all()
-    #根据作者搜
+    # 根据作者搜
     if not book_list:
         book_list = Book.query.filter(Book.author.like("%" + keywords + "%") if keywords is not None else ""
                                       ).all()
-    #根据出版社搜
+    # 根据出版社搜
     if not book_list:
         book_list = Book.query.filter(Book.publisher.like("%" + keywords + "%") if keywords is not None else ""
                                       ).all()
-    # print('book_list', book_list)
+    print('book_list', book_list)
     book_list_dict = []
     for book in book_list:
-        # print(book.isbn)
+        print(book.isbn)
         book_list_dict.append(
             {
                 'isbn': book.isbn,
@@ -210,24 +213,24 @@ def searchbook():
     # return book_list_json
     return render_template('borrowbook.html', books=book_list_dict)
 
-#在预约界面查询读者
-@app.route('/searchreader',methods=['POST','GET'])
+
+# 在预约界面查询读者
+@app.route('/searchreader', methods=['POST', 'GET'])
 @admin_login_req
 def searchreader():
     keywords = request.args.get('keywords')
-    #根据姓名搜
-    reader_list = Reader.query.filter(Reader.name.like("%"+keywords+"%") if keywords is not None else ""
-                                  ).all()
-    #根据id搜
+    # 根据姓名搜
+    reader_list = Reader.query.filter(Reader.name.like("%" + keywords + "%") if keywords is not None else ""
+                                      ).all()
+    # 根据id搜
     if not reader_list:
         reader_list = Reader.query.filter(Reader.id.like("%" + keywords + "%") if keywords is not None else ""
-                                      ).all()
+                                          ).all()
 
-
-    # print('reader_list', reader_list)
+    print('reader_list', reader_list)
     reader_list_dict = []
     for reader in reader_list:
-        # print(reader.id)
+        print(reader.id)
         reader_list_dict.append(
             {
                 'id': reader.id,
@@ -242,18 +245,19 @@ def searchreader():
     # return book_list_json
     return render_template('orderbook.html', readers=reader_list_dict)
 
+
 # 预约界面(主要显示读者的预约信息)
 @app.route('/orderbook')
 @admin_login_req
 def orderbook():
     id = request.args.get('id')
     if id == None:
-        #显示所有读者信息
+        # 显示所有读者信息
         readers = Reader.query.all()
-        # print('readers', readers)
+        print('readers', readers)
         reader_list_dict = []
         for reader in readers:
-            # print(reader.id)
+            print(reader.id)
             reader_list_dict.append(
                 {
                     'id': reader.id,
@@ -264,19 +268,17 @@ def orderbook():
             )
         return render_template('orderbook.html', readers=reader_list_dict)
     else:
-        #显示选定id读者的预约信息
-        # print("!!")
-        reserves = ReserveInfo.query.filter(ReserveInfo.reader_id==id).all()
+        # 显示选定id读者的预约信息
+        print("!!")
+        reserves = ReserveInfo.query.filter(ReserveInfo.reader_id == id).all()
         reserveinfo_list_dict = []
         for reserve in reserves:
             reserveinfo_list_dict.append(
                 {
                     'reader_id': reserve.reader_id,
                     'isbn': reserve.isbn,
-                    'book_name': reserve.book.name,
                     'reserve_date': reserve.reserve_date,
                     'status': reserve.status,
-                    'inform_date': reserve.inform_date,
                     'agent_id': reserve.agent_id,
                 }
             )
@@ -288,10 +290,10 @@ def orderbook():
 @app.route('/is_book_avalable', methods=['POST'])
 def is_book_avalable():
     isbn = request.form.get('isbn')
-    # print(isbn)
+    print(isbn)
     try:
         bookinfo = BookInfo.query.filter(BookInfo.isbn == isbn, BookInfo.status == "未借出").all()
-        # print(bookinfo)
+        print(bookinfo)
         if not bookinfo:
             bookinfo = BookInfo.query.filter(BookInfo.isbn == isbn, BookInfo.status == "已借出").all()
             if not bookinfo:
@@ -300,8 +302,9 @@ def is_book_avalable():
         else:
             return json.dumps({"state": 203, "msg": "此书有空闲，无需预约！"})
     except Exception as e:
-        # print(e)
+        print(e)
         return json.dumps({"message": e})
+
 
 # 预约操作
 @app.route('/doreservebook', methods=['POST'])
@@ -309,15 +312,16 @@ def doreservebook():
     isbn = request.form.get('isbn')
     id = request.form.get('id')
     print("genge")
-    # print(isbn+','+id)
+    print(isbn + ',' + id)
     reader_id = Reader.query.filter_by(id=id).first()
     if not reader_id:
         return json.dumps({"state": 106, "msg": "没有这个id!"})
-    #查询是否已有预约记录
-    have_reserve = ReserveInfo.query.filter(ReserveInfo.reader_id == id, ReserveInfo.isbn == isbn, ReserveInfo.status !="已完成").all()
+    # 查询是否已有预约记录
+    have_reserve = ReserveInfo.query.filter(ReserveInfo.reader_id == id, ReserveInfo.isbn == isbn,
+                                            ReserveInfo.status != "已完成").all()
     if have_reserve:
         return json.dumps({"state": 204, "msg": "您已预约该书！"})
-    #插入预约信息(reader_id,isbn,agent_id)
+    # 插入预约信息(reader_id,isbn,agent_id)
     user_id = session['user_id']  # session中取经办人id
     # print(user_id)
     reserInfo = ReserveInfo()
@@ -336,8 +340,9 @@ def doreservebook():
     except Exception as e:
         return json.dumps({"state": 206, "msg": e})
 
+
 # 还书界面
-@app.route('/returnbook', methods=['POST','GET'])
+@app.route('/returnbook', methods=['POST', 'GET'])
 @admin_login_req
 def returnbook():
     id = request.args.get('id')
@@ -364,7 +369,7 @@ def returnbook():
         borrows = BorrowInfo.query.filter(BorrowInfo.reader_id == id).all()
         borrowinfo_list_dict = []
         for borrow in borrows:
-            #print(borrow.book.book.name)
+            # print(borrow.book.book.name)
             print("查询fine")
             fine = fine_of_returnbook(borrow.due_date)
             borrowinfo_list_dict.append(
@@ -382,8 +387,9 @@ def returnbook():
         return render_template('returnbook.html', readerinfo=borrowinfo_list_dict)
     return render_template('returnbook.html')
 
+
 # 还书操作
-@app.route('/doreturnbook', methods=['POST','GET'])
+@app.route('/doreturnbook', methods=['POST', 'GET'])
 def doreturnbook():
     reader_id = request.form.get('reader_id')
     book_id = request.form.get('book_id')
@@ -394,42 +400,42 @@ def doreturnbook():
                                          , BorrowInfo.borrow_date == borrow_date).first()
     reserveinfo = ReserveInfo.query.filter(ReserveInfo.isbn == borrowinfo.book.isbn).first()
 
-    #有人预约
+    # 有人预约
     if reserveinfo:
         print("有预约")
         try:
-            #bookinfo:已借出->已预约
+            # bookinfo:已借出->已预约
             bookinfo = BookInfo.query.filter(BookInfo.book_id == book_id).first()
             bookinfo.status = "已预约"
             db.session.commit()
-            #添加return_date
+            # 添加return_date
             borrowinfo = BorrowInfo.query.filter(BorrowInfo.reader_id == reader_id, BorrowInfo.book_id == book_id
                                                  , BorrowInfo.borrow_date == borrow_date).first()
             borrowinfo.return_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
             db.session.commit()
-            #reserveinfo: 等待->已通知
+            # reserveinfo: 等待->已通知
             reserveinfo = ReserveInfo.query.filter(ReserveInfo.isbn == borrowinfo.book.isbn).first()
             reserveinfo.status = "已通知"
-            #添加inform_date
+            # 添加inform_date
             reserveinfo.inform_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
             db.session.commit()
-            #发邮件通知
+            # 发邮件通知
             reserve_email(reserveinfo.reader_id, book_id)
             return jsonify({"state": 208, "msg": "还书成功"})
 
         except Exception as e:
             return jsonify({"state": 209, "msg": e})
 
-    #无人预约，直接归还
+    # 无人预约，直接归还
     else:
         print("无预约")
         try:
-            #bookinfo:已借出->未借出
+            # bookinfo:已借出->未借出
             bookinfo = BookInfo.query.filter(BookInfo.book_id == book_id).first()
             print(book_id)
             bookinfo.status = "未借出"
             db.session.commit()
-            #添加return_date
+            # 添加return_date
             borrowinfo = BorrowInfo.query.filter(BorrowInfo.reader_id == reader_id, BorrowInfo.book_id == book_id
                                                  , BorrowInfo.borrow_date == borrow_date).first()
             borrowinfo.return_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
@@ -439,8 +445,6 @@ def doreturnbook():
         except Exception as e:
             return jsonify({"state": 208, "msg": e})
     return jsonify({"state": 209, "msg": "e"})
-
-
 
 
 # 修改书目数目
@@ -498,7 +502,59 @@ def add_bookinfo():
             print(book_info)
             db.session.add(book_info)
         db.session.commit()
-        return json.dumps({"state": 200, "message": "修改成功！"})
+        return json.dumps({"state": 200, "message": "增加成功！"})
+    except Exception as e:
+        print(e)
+        return json.dumps({"state": 0, "message": e})
+
+
+# 删除书本
+@app.route('/del_bookinfo', methods=['POST'])
+def del_bookinfo():
+    """
+    使用 request.form.get获取json中的数据，并向数据库删除书本数据。
+    :return:返回格式为json格式，若成功则返回status为200，和对应的提示信息，失败则返回status为0。
+    """
+    try:
+        isbn = request.form.get('isbn')
+        book_ids = json.loads(request.form.get('book_id'))
+        for book_id in book_ids:
+            print(book_id)
+            book = BookInfo.query.filter(BookInfo.book_id == book_id).first()
+            print(book)
+            if book.status == "已借出" or book.status == "已预约":
+                return json.dumps({"state": -1, "message": "该书已经借出或被预约，无法删除！"})
+            if len(BorrowInfo.query.filter(BorrowInfo.book_id == book_id).all()):
+                return json.dumps({"state": -2, "message": "尚存在该书的借阅记录，无法删除！"})
+            db.session.delete(book)
+        db.session.commit()
+        return json.dumps({"state": 200, "message": "删除成功！"})
+    except Exception as e:
+        print(e)
+        return json.dumps({"state": 0, "message": e})
+
+
+# 添加书目
+@app.route('/add_bookisbn', methods=['POST'])
+def add_bookisbn():
+    try:
+        isbn = request.form.get('isbn')
+        author = request.form.get('author')
+        bookname = request.form.get('bookname')
+        publisher = request.form.get('publisher')
+        publish_date = request.form.get('publish_date')
+        agent_id = request.form.get('agent_id')
+        book = Book()
+        book.isbn = isbn
+        book.name = bookname
+        book.author = author
+        book.agent_id = agent_id
+        book.amount = 0
+        book.publisher = publisher
+        book.pub_date = publish_date
+        db.session.add(book)
+        db.session.commit()
+        return json.dumps({"state": 200, "message": "添加成功！"})
     except Exception as e:
         print(e)
         return json.dumps({"state": 0, "message": e})

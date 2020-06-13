@@ -1,7 +1,7 @@
 {% extends "demo.html" %}
 {% block content %}
     <!--新增滚动图片模态框-->
-    <div class="modal fade bs-example-modal-lg" id="bookModal" tabindex="-1" role="dialog"
+    <div class="modal fade bs-example-modal-lg" id="bookModal1" tabindex="-1" role="dialog"
          aria-labelledby="picModalLabel">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -14,19 +14,7 @@
                 <div class="modal-body">
                     <div class="row">
                         <form class="form-horizontal">
-                            <div class="col-sm-12" id="input_area">
-                                {#                                <div class="col-sm-9" style="margin-left: 15px">#}
-                                {#                                    <div class="form-group">#}
-                                {#                                        <label>请输入书本id:</label>#}
-                                {#                                        <input type="text" name="bookid">#}
-                                {#                                        <label>请选择所在地:</label>#}
-                                {#                                        <select>#}
-                                {#                                            <option value="图书阅览室">图书阅览室</option>#}
-                                {#                                            <option value="图书流通室">图书流通室</option>#}
-                                {#                                        </select>#}
-                                {##}
-                                {#                                    </div>#}
-                                {#                                </div>#}
+                            <div class="col-sm-12" id="input_area1">
                             </div>
                             <div class="col-sm-9" style="margin-left: 15px">
                                 <div class="form-group">
@@ -39,7 +27,7 @@
                                             <th>状态</th>
                                         </tr>
                                         </thead>
-                                        <tbody id="bookinfo">
+                                        <tbody id="bookinfo1">
 
                                         </tbody>
                                     </table>
@@ -59,7 +47,102 @@
         </div>
     </div>
 
-    <button class="ui primary button" onclick="">添加书目</button>
+    <div class="modal fade bs-example-modal-lg" id="bookModal2" tabindex="-1" role="dialog"
+         aria-labelledby="picModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="picModalLabel">书本管理</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <form class="form-horizontal">
+                            <div class="col-sm-12" id="input_area2">
+                            </div>
+                            <div class="col-sm-9" style="margin-left: 15px">
+                                <div class="form-group">
+                                    <table style="width: 100%">
+                                        <caption>请选择需要删除的图书</caption>
+                                        <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>书本id</th>
+                                            <th>存放地点</th>
+                                            <th>状态</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody id="bookinfo2">
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">
+                        <i class="fa fa-save" onclick="delbook_info()">删除</i>
+                    </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> 关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade bs-example-modal-lg" id="bookModal3" tabindex="-1" role="dialog"
+         aria-labelledby="picModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="picModalLabel">增加书目</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <form class="form-horizontal">
+                            <div class="col-sm-12" id="input_area3">
+                                <div class="col-sm-9" style="width:500px;margin-top: 20px;text-align: right">
+                                    <label for="isbn">isbn：</label><input id="input_isbn" type="text">
+                                </div>
+                                <div class="col-sm-9" style="width:500px;margin-top: 20px;text-align: right">
+                                    <label for="bookname">书名：</label><input id="input_bookname" type="text">
+                                </div>
+                                <div class="col-sm-9" style="width:500px;margin-top: 20px;text-align: right">
+                                    <label for="author">作者：</label><input id="input_author" type="text">
+                                </div>
+                                <div class="col-sm-9" style="width:500px;margin-top: 20px;text-align: right">
+                                    <label for="publisher">出版社：</label><input id="input_publisher" type="text">
+                                </div>
+                                <div class="col-sm-9" style="width:500px;margin-top: 20px;text-align: right">
+                                    <label for="publish_date">出版日期：</label><input id="input_publish_date" type="date">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">
+                        <i class="fa fa-save" onclick="add_bookisbn()">添加</i>
+                    </button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-close"></i> 关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="ui primary button" onclick="create_bookisbn()">创建书目</button>
+    <label>
+        <input class="ui input-group-text" id="findISBN"/>
+    </label>
+    <button class="ui primary button" onclick="find_ISBN()">查找</button>
     <table class="table" id="putin">
         <caption>已存在书目</caption>
         <thead>
@@ -74,7 +157,7 @@
             <th>操作</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="t_isbn">
         {% for book in books %}
             <tr class="active">
                 <td>{{ book.isbn }}</td>
@@ -85,8 +168,11 @@
                 <td>{{ book.amount }}</td>
                 <td>{{ book.agent.user_name }}</td>
                 <td>
-                    <button class="ui primary button" onclick="change_amount('{{ book.isbn }}')">修改数量</button>
-                    <button class="ui primary button" onclick="guanli('{{ book.isbn }}')">管理</button>
+                    {#                    <button class="ui primary button" onclick="change_amount('{{ book.isbn }}')">修改数量</button>#}
+                    <button class="ui primary button" onclick="add_book('{{ book.isbn }}')">增加</button>
+                    <button class="ui primary button" style="background:#CC0033" onclick="del_book('{{ book.isbn }}')">
+                        删除
+                    </button>
                 </td>
             </tr>
         {% endfor %}
@@ -97,6 +183,64 @@
 
 {% block js %}
     <script>
+        function create_bookisbn() {
+            $("#bookModal3").modal('show');
+        }
+
+        function add_bookisbn() {
+            var isbn = $("#input_isbn").val();
+            var author = $("#input_author").val();
+            var bookname = $("#input_bookname").val();
+            var publisher = $("#input_publisher").val();
+            var publish_date = $("#input_publish_date").val();
+            $.ajax({
+                type: "post",
+                url: "{{ url_for('add_bookisbn') }}",
+                dataType: "json",
+                traditional: true,
+                data: {
+                    "isbn": isbn,
+                    "author": author,
+                    "bookname": bookname,
+                    "agent_id": "{{ agent_id }}",
+                    "publisher": publisher,
+                    "publish_date": publish_date
+                },
+                success: function (data) {
+                    if (data.state) {
+                        modals.ok(data.message, function () {
+                            self.location.reload();
+                        });
+                    } else {
+                        modals.error(data.message);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    modals.error("请求错误,请联系管理员！");
+                }
+            });
+        }
+
+        function find_ISBN() {
+            var isbn = $("#findISBN").val();
+            var isbns = eval('{{isbns|safe }}');
+            console.log(isbns);
+            trs = $("#t_isbn").children();
+            for (i = 0; i < isbns.length; i++) {
+                trs.eq(i).removeClass();
+                trs.eq(i).addClass("active");
+            }
+            for (i = 0; i < isbns.length; i++) {
+                if (isbn === isbns[i]) {
+                    trs.eq(i).removeClass("active");
+                    trs.eq(i).addClass("warning");
+                    trs.eq(i)[0].scrollIntoView(true);
+                    return;
+                }
+            }
+            alert("未查找到该isbn号！");
+        }
+
         var ISBN = "";
 
         function change_amount(isbn) {
@@ -128,8 +272,7 @@
             });
         }
 
-
-        function guanli(isbn) {
+        function add_book(isbn) {
             ISBN = isbn;
             var re = /^[1-9]$/;
             var num = prompt("请输入添加的数量！(1-9以内)");
@@ -140,10 +283,10 @@
                 console.log('asd');
                 return;
             }
-            $("#input_area").html("");
-            $("#bookinfo").html("");
+            $("#input_area1").html("");
+            $("#bookinfo1").html("");
             for (i = 0; i < num - '0'; i++)
-                $("#input_area").append("<div class=\"col-sm-9\" style=\"margin-left: 15px\">\n" +
+                $("#input_area1").append("<div class=\"col-sm-9\" style=\"margin-left: 15px\">\n" +
                     "<div class=\"form-group\">\n" +
                     "<label>请输入书本id:</label>\n" +
                     "<input class=\"id_input\" type=\"text\" name=\"bookid\">\n" +
@@ -163,10 +306,60 @@
                 success: function (data) {
                     console.log(data);
                     for (i = 0; i < data.length; i++)
-                        $("#bookinfo").append("<tr><td>" + data[i].book_id + "</td><td>" + data[i].location + "</td><td>" + data[i].status + "</td></tr>")
+                        $("#bookinfo1").append("<tr><td>" + data[i].book_id + "</td><td>" + data[i].location + "</td><td>" + data[i].status + "</td></tr>")
                 }
             });
-            $("#bookModal").modal('show');
+            $("#bookModal1").modal('show');
+        }
+
+        function del_book(isbn) {
+            ISBN = isbn;
+            $("#input_area2").html("");
+            $("#bookinfo2").html("");
+            $.ajax({
+                type: "post",
+                url: "{{ url_for('get_BI_by_ibsn') }}",
+                dataType: "json",
+                data: {isbn: isbn},
+                success: function (data) {
+                    console.log(data);
+                    for (i = 0; i < data.length; i++)
+                        $("#bookinfo2").append("<tr><td><input name=\"del\" type=\"checkbox\" value=\"\" /></td><td>" + data[i].book_id + "</td><td>" + data[i].location + "</td><td>" + data[i].status + "</td></tr>")
+                }
+            });
+            $("#bookModal2").modal('show');
+        }
+
+        //删除图书
+        function delbook_info() {
+            var checkboxs = $('input:checkbox');
+            book_list = [];
+            for (var i = 0; i < checkboxs.length; i++)
+                if (checkboxs[i].checked === true) {
+                    book_list.push($("#bookinfo2").find('tr').eq(i).find('td').eq(1).html())
+                }
+            $.ajax({
+                type: "post",
+                url: "{{ url_for('del_bookinfo') }}",
+                dataType: "json",
+                traditional: true,
+                data: {
+                    "book_id": JSON.stringify(book_list),
+                    "isbn": ISBN,
+                },
+                success: function (data) {
+                    if (data.state === 200) {
+                        modals.ok(data.message, function () {
+                            self.location.reload();
+                        });
+                    } else {
+                        modals.error(data.message);
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    modals.error("请求错误,请联系管理员！");
+                }
+            });
         }
 
         function addbook_info() {
