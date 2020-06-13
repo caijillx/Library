@@ -57,7 +57,7 @@ class ReserveInfo(db.Model):
     isbn = db.Column(db.ForeignKey('book.isbn'), primary_key=True, nullable=False, index=True)
     reserve_date = db.Column(db.String, primary_key=True, nullable=False)#预约的日期
     status = db.Column(db.String(30))#等待、已通知、已完成
-    inform_date = db.Column(db.String(30)) #通知取书后设置的期限
+    inform_date = db.Column(db.String(30)) #通知取书的日期
     agent_id = db.Column(db.ForeignKey('admin.user_id'), index=True)
 
     agent = db.relationship('Admin')

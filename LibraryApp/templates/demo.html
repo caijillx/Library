@@ -102,29 +102,7 @@
         });
     });
 </script>
-<script type="text/javascript">
-   function borrowbookajaxForm(index){
-       var formname = "form" + index;
-       var id=prompt("请输入你的id","");
-       var form= new FormData(document.getElementById(formname));
-       form.set('id',id);
-        $.ajax({
-            url:"{{ url_for('borrowbook') }}",
-            type:"post",
-            data:form,
-            dataType: 'json',
-            processData:false,
-            contentType:false,
-            success:function(data){
-                 alert(data['msg']);
-                 window.location.reload()
-            },
-            error:function(e){
-                    alert("error");
-            }
-        })
-    }
-</script>
+
 {% block js %}{% endblock %}
 
 </body>

@@ -81,98 +81,155 @@ def putin():
 @app.route('/borrowbook', methods=['POST', 'GET'])
 @admin_login_req
 def borrowbook():
-    if request.method == 'GET':  # 处理get请求
-        bookisbn = request.args.get('bookisbn')
-        print('isbn=', bookisbn)
-        if bookisbn == None:  # isbn为空，则显示所有书的信息
-            book_list = Book.query.all()
-            print('book_list', book_list)
-            book_list_dict = []
-            for book in book_list:
-                print(book.isbn)
-                book_list_dict.append(
-                    {
-                        'isbn': book.isbn,
-                        'name': book.name,
-                        'author': book.author,
-                        'publisher': book.publisher,
-                        'pub_date': book.pub_date
-                    }
-                )
-            # print(book_list_dict)
-            # book_list_json = json.dumps(book_list_dict)
-
-            # return book_list_json
-            return render_template('borrowbook.html', books=book_list_dict)
-        book_info = BookInfo.query.filter_by(isbn=bookisbn).all()  # isbn不为空，返回具体的书本状态
-        bookinfo_list_dict = []
-        for book in book_info:
+    # if request.method == 'GET':  # 处理get请求
+    bookisbn = request.args.get('bookisbn')
+    print('isbn=', bookisbn)
+    if bookisbn == None:  # isbn为空，则显示所有书的信息
+        book_list = Book.query.all()
+        print('book_list', book_list)
+        book_list_dict = []
+        for book in book_list:
             print(book.isbn)
-            bookinfo_list_dict.append(
+            book_list_dict.append(
                 {
-                    'book_id': book.book_id,
                     'isbn': book.isbn,
-                    'location': book.location,
-                    'status': book.status
+                    'name': book.name,
+                    'author': book.author,
+                    'publisher': book.publisher,
+                    'pub_date': book.pub_date
                 }
             )
-        return render_template('borrowbook.html', bookinfo=bookinfo_list_dict)
-    else:  # 处理post请求
-        book_id = request.form.get('book_id')
-        isbn = request.form.get('isbn')
-        id = request.form.get('id')
-        user_id = session['user_id']  # session中取经办人id
-        book_info = BookInfo.query.filter_by(isbn=isbn).all()  # isbn不为空，返回具体的书本状态
-        bookinfo_list_dict = []
-        for book in book_info:
-            print(book.isbn)
-            bookinfo_list_dict.append(
-                {
-                    'book_id': book.book_id,
-                    'isbn': book.isbn,
-                    'location': book.location,
-                    'status': book.status
-                }
-            )
-        print("book_id:" + book_id)
-        print("isbn:" + isbn)
-        print("id:" + id)
-        print("user_id:" + user_id)
-        reader_id = Reader.query.filter_by(id=id).first()
-        if reader_id != None:
-            # 查询读者借书总数有无超过十本
-            bookcount = BorrowInfo.query.filter(BorrowInfo.reader_id == id, BorrowInfo.return_date == None).count()
-            print("bookcount:" + bookcount)
-            if bookcount >= 10:
-                return jsonify({"state": 103, "msg": "借阅成功"})  # 超出借书数量
-            # 插入借书记录
-            borrow_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
-            due_date = (datetime.datetime.now() + datetime.timedelta(days=60)).strftime("%Y-%m-%d")  # 60天后
+        # print(book_list_dict)
+        # book_list_json = json.dumps(book_list_dict)
 
-            try:
-                borroInfo = BorrowInfo()
-                borroInfo.reader_id = id
-                borroInfo.book_id = book_id
-                borroInfo.borrow_date = borrow_date
-                borroInfo.due_date = due_date
-                borroInfo.agent_id = user_id
-                db.session.add(borroInfo)
-                db.session.commit()
-                bookInfo = BookInfo.query.filter(BookInfo.book_id == book_id).first()
-                bookInfo.status = "已借出"
-                db.session.commit()
-                print("book_status change success")
-                return jsonify({"state": 104, "msg": "借阅成功"})  # 由borrowbook的ajax接受，弹窗显示
-            except Exception as e:
-                print(e)
-                return jsonify({"state": 105, "msg": e})  # 由borrowbook的ajax接受，弹窗显示
+        # return book_list_json
+        return render_template('borrowbook.html', books=book_list_dict)
+    book_info = BookInfo.query.filter_by(isbn=bookisbn).all()  # isbn不为空，返回具体的书本状态
+    bookinfo_list_dict = []
+    for book in book_info:
+        print(book.isbn)
+        bookinfo_list_dict.append(
+            {
+                'book_id': book.book_id,
+                'isbn': book.isbn,
+                'location': book.location,
+                'status': book.status
+            }
+        )
+    return render_template('borrowbook.html', bookinfo=bookinfo_list_dict)
+    # else:  # 处理post请求
+    #     book_id = request.form.get('book_id')
+    #     isbn = request.form.get('isbn')
+    #     id = request.form.get('id')
+    #     user_id = session['user_id']  # session中取经办人id
+    #     book_info = BookInfo.query.filter_by(isbn=isbn).all()  # isbn不为空，返回具体的书本状态
+    #     bookinfo_list_dict = []
+    #     for book in book_info:
+    #         print(book.isbn)
+    #         bookinfo_list_dict.append(
+    #             {
+    #                 'book_id': book.book_id,
+    #                 'isbn': book.isbn,
+    #                 'location': book.location,
+    #                 'status': book.status
+    #             }
+    #         )
+    #     print("book_id:" ,book_id)
+    #     print("isbn:" ,isbn)
+    #     print("id:",id)
+    #     print("user_id:" ,user_id)
+    #     reader_id = Reader.query.filter_by(id=id).first()
+    #     if reader_id != None:
+    #         # 查询读者借书总数有无超过十本
+    #         bookcount = BorrowInfo.query.filter(BorrowInfo.reader_id == id, BorrowInfo.return_date == None).count()
+    #         print("bookcount:" + bookcount)
+    #         if bookcount >= 10:
+    #             return jsonify({"state": 103, "msg": "借阅成功"})  # 超出借书数量
+    #         # 插入借书记录
+    #         borrow_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
+    #         due_date = (datetime.datetime.now() + datetime.timedelta(days=60)).strftime("%Y-%m-%d")  # 60天后
+    #
+    #         try:
+    #             borroInfo = BorrowInfo()
+    #             borroInfo.reader_id = id
+    #             borroInfo.book_id = book_id
+    #             borroInfo.borrow_date = borrow_date
+    #             borroInfo.due_date = due_date
+    #             borroInfo.agent_id = user_id
+    #             db.session.add(borroInfo)
+    #             db.session.commit()
+    #             bookInfo = BookInfo.query.filter(BookInfo.book_id == book_id).first()
+    #             bookInfo.status = "已借出"
+    #             db.session.commit()
+    #             print("book_status change success")
+    #             return jsonify({"state": 104, "msg": "借阅成功"})  # 由borrowbook的ajax接受，弹窗显示
+    #         except Exception as e:
+    #             print(e)
+    #             return jsonify({"state": 105, "msg": e})  # 由borrowbook的ajax接受，弹窗显示
+    #
+    #     else:
+    #         # id在数据库中找不到
+    #         return jsonify({"state": 106, "msg": "没有这个id!"})
+    #
+    #     # return render_template('borrowbook.html', bookinfo=bookinfo_list_dict)
 
-        else:
-            # id在数据库中找不到
-            return jsonify({"state": 106, "msg": "没有这个id!"})
 
-        # return render_template('borrowbook.html', bookinfo=bookinfo_list_dict)
+# 做借书操作
+@app.route('/doborrowbook', methods=['POST', 'GET'])
+@admin_login_req
+def doborrowbook():
+    book_id = request.form.get('book_id')
+    isbn = request.form.get('isbn')
+    id = request.form.get('id')
+    user_id = session['user_id']  # session中取经办人id
+    book_info = BookInfo.query.filter_by(isbn=isbn).all()  # isbn不为空，返回具体的书本状态
+    bookinfo_list_dict = []
+    for book in book_info:
+        print(book.isbn)
+        bookinfo_list_dict.append(
+            {
+                'book_id': book.book_id,
+                'isbn': book.isbn,
+                'location': book.location,
+                'status': book.status
+            }
+        )
+    print("book_id:" ,book_id)
+    print("isbn:" ,isbn)
+    print("id:",id)
+    print("user_id:" ,user_id)
+    reader_id = Reader.query.filter_by(id=id).first()
+    if reader_id != None:
+        # 查询读者借书总数有无超过十本
+        bookcount = BorrowInfo.query.filter(BorrowInfo.reader_id == id, BorrowInfo.return_date == None).count()
+        print("bookcount:" ,bookcount)
+        if bookcount >= 10:
+            return jsonify({"state": 103, "msg": "借阅成功"})  # 超出借书数量
+        # 插入借书记录
+        borrow_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
+        due_date = (datetime.datetime.now() + datetime.timedelta(days=60)).strftime("%Y-%m-%d")  # 60天后
 
+        try:
+            borroInfo = BorrowInfo()
+            borroInfo.reader_id = id
+            borroInfo.book_id = book_id
+            borroInfo.borrow_date = borrow_date
+            borroInfo.due_date = due_date
+            borroInfo.agent_id = user_id
+            db.session.add(borroInfo)
+            db.session.commit()
+            bookInfo = BookInfo.query.filter(BookInfo.book_id == book_id).first()
+            bookInfo.status = "已借出"
+            db.session.commit()
+            print("book_status change success")
+            return jsonify({"state": 104, "msg": "借阅成功"})  # 由borrowbook的ajax接受，弹窗显示
+        except Exception as e:
+            print(e)
+        return jsonify({"state": 105, "msg": e})  # 由borrowbook的ajax接受，弹窗显示
+
+    else:
+        # id在数据库中找不到
+        return jsonify({"state": 107, "msg": "没有这个id!"})
 
 # 借书界面的搜索功能
 @app.route('/searchbook', methods=['POST', 'GET'])
@@ -247,7 +304,7 @@ def searchreader():
 
 
 # 预约界面(主要显示读者的预约信息)
-@app.route('/orderbook')
+@app.route('/orderbook' ,methods=['POST', 'GET'])
 @admin_login_req
 def orderbook():
     id = request.args.get('id')
@@ -277,7 +334,9 @@ def orderbook():
                 {
                     'reader_id': reserve.reader_id,
                     'isbn': reserve.isbn,
+                    'book_name': reserve.book.name,
                     'reserve_date': reserve.reserve_date,
+                    'inform_date': reserve.inform_date,
                     'status': reserve.status,
                     'agent_id': reserve.agent_id,
                 }
@@ -285,6 +344,44 @@ def orderbook():
         return render_template('orderbook.html', readerinfo=reserveinfo_list_dict)
     return render_template('orderbook.html')
 
+#取预约书操作
+@app.route('/getorderbook' ,methods=['POST', 'GET'])
+@admin_login_req
+def getorderbook():
+    user_id = session['user_id']
+    isbn = request.form.get('isbn')
+    reader_id = request.form.get('reader_id')
+    reserve_date = request.form.get('reserve_date')
+    reserve_info = ReserveInfo.query.filter(ReserveInfo.isbn == isbn ,ReserveInfo.reader_id == reader_id ,ReserveInfo.reserve_date == reserve_date).first()
+    if(reserve_info):
+        try:
+            #修改预约信息状态
+            reserve_info.status = "已取书"
+            db.session.commit()
+            #查询isbn中状态为已预约的书，修改状态为已借出
+            book_info = BookInfo.query.filter(BookInfo.isbn == isbn ,BookInfo.status == "已预约").first()
+            book_id = book_info.book_id
+            book_info.status = "已借出"
+            db.session.commit()
+            # 插入借书记录
+            borrow_date = datetime.datetime.now().strftime("%Y-%m-%d")  # 当前时间 Y-m-d
+            due_date = (datetime.datetime.now() + datetime.timedelta(days=60)).strftime("%Y-%m-%d")  # 60天后
+            borroInfo = BorrowInfo()
+            borroInfo.reader_id = reader_id
+            borroInfo.book_id = book_id
+            borroInfo.borrow_date = borrow_date
+            borroInfo.due_date = due_date
+            borroInfo.agent_id = user_id
+            db.session.add(borroInfo)
+            db.session.commit()
+            return jsonify({"state": 104, "msg": "取书成功"})  # 由borrowbook的ajax接受，弹窗显示
+        except Exception as e:
+            print(e)
+            return jsonify({"state": 105, "msg": e})  # 由borrowbook的ajax接受，弹窗显示
+    return jsonify({"state": 105, "msg": "未知错误，抱歉"})  # 由borrowbook的ajax接受，弹窗显示
+
+
+    pass
 
 # 查询isbn是否有可借的书本
 @app.route('/is_book_avalable', methods=['POST'])
@@ -398,7 +495,7 @@ def doreturnbook():
     # print(isbn+','+id)
     borrowinfo = BorrowInfo.query.filter(BorrowInfo.reader_id == reader_id, BorrowInfo.book_id == book_id
                                          , BorrowInfo.borrow_date == borrow_date).first()
-    reserveinfo = ReserveInfo.query.filter(ReserveInfo.isbn == borrowinfo.book.isbn).first()
+    reserveinfo = ReserveInfo.query.filter(ReserveInfo.isbn == borrowinfo.book.isbn ,ReserveInfo.status == "等待").first()
 
     # 有人预约
     if reserveinfo:

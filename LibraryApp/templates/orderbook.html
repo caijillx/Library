@@ -28,6 +28,7 @@
                         <div class="search-box pull-left">
                             <form action="searchreader">
                                 <input type="text" name="keywords" placeholder="Search..." required>
+                                <input type="submit"  class="ui primary button" value="查询">
                                 <i class="ti-search"></i>
                             </form>
                         </div>
@@ -73,7 +74,7 @@
             <tbody>
                 {% for reader in readerinfo %}
                 <tr>
-                    <form class="ui form segment" id="form{{ loop.index }}" method="post" action="/getbook">
+                    <form class="ui form segment" id="form{{ loop.index }}" method="post" action="#">
                     <th scope="row">{{ reader.reader_id }}</th>
                     <th scope="row">{{ reader.isbn }}</th>
                     <th scope="row">{{ reader.book_name }}</th>
@@ -83,9 +84,10 @@
                     <th scope="row">{{ reader.agent_id }}</th>
                     <input type='hidden' name='reader_id' value='{{ reader.reader_id }}'>
                     <input type='hidden' name='isbn' value='{{ reader.isbn }}'>
+                    <input type='hidden' name='reserve_date' value='{{ reader.reserve_date }}'>
                     {% if reader.status == "已通知" %}
                         <th scope="row">
-                            <button class="ui primary button" onclick="getbookajaxForm({{ loop.index }})">
+                            <button class="ui primary button" onclick="getoderbookajaxForm({{ loop.index }})">
                                 取书
                             </button>
                         </th>
@@ -104,26 +106,32 @@
 {% endblock %}
 {% block js %}
 <script type="text/javascript">
-   function getbookajaxForm(index){
+   function getoderbookajaxForm(index){
        var formname = "form" + index;
-       var id=prompt("请输入你的id","");
        var form= new FormData(document.getElementById(formname));
-       form.set('id',id);
-        $.ajax({
-            url:"{{ url_for('borrowbook') }}",
-            type:"post",
-            data:form,
-            dataType: 'json',
-            processData:false,
-            contentType:false,
-            success:function(data){
-                 alert(data['msg']);
-                 window.location.reload()
-            },
-            error:function(e){
-                    alert("error");
-            }
-        })
+       function del() {
+           if(window.confirm("请确定给该读者办理取书业务"))
+               return true;
+           else
+               return false;
+                }
+       if(del()) {
+           $.ajax({
+               url: "{{ url_for('getorderbook') }}",
+               type: "post",
+               data: form,
+               dataType: 'json',
+               processData: false,
+               contentType: false,
+               success: function (data) {
+                   alert(data['msg']);
+                   window.location.reload()
+               },
+               error: function (e) {
+                   alert("error");
+               }
+           })
+       }
     }
 </script>
 {% endblock %}

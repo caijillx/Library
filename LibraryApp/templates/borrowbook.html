@@ -31,6 +31,7 @@
                         <div class="search-box pull-left">
                             <form action="searchbook">
                                 <input type="text" name="keywords" placeholder="Search..." required>
+                                <input type="submit"  class="ui primary button" value="查询">
                                 <i class="ti-search"></i>
                             </form>
                         </div>
@@ -73,7 +74,7 @@
             <tbody>
                 {% for book in bookinfo %}
                 <tr>
-                    <form class="ui form segment" id="form{{ loop.index }}" method="post" action="/borrowbook">
+                    <form class="ui form segment" id="form{{ loop.index }}" method="post" action="#">
                     <th scope="row">{{ book.book_id }}</th>
                     <th scope="row">{{ book.isbn }}</th>
                     <th scope="row">{{ book.location }}</th>
@@ -102,44 +103,76 @@
 {% endblock %}
 {% block js %}
 <script type="text/javascript">
+   function borrowbookajaxForm(index){
+       var formname = "form" + index;
+       function del() {
+           if(window.confirm("请确定给该读者办理借书业务"))
+               return true;
+           else
+               return false;
+                }
+       if(del()) {
+           var id = prompt("请输入你的id", "");
+           var form = new FormData(document.getElementById(formname));
+           form.set('id', id);
+           $.ajax({
+               url: "{{ url_for('doborrowbook') }}",
+               type: "post",
+               data: form,
+               dataType: 'json',
+               processData: false,
+               contentType: false,
+               success: function (data) {
+                   alert(data['msg']);
+                   window.location.reload()
+               },
+               error: function (e) {
+                   alert("error");
+               }
+           })
+       }
+    }
    function reservebook(isbn){
-       //var formname = "form" + index;
-       //var id=prompt("请输入你的id","");
-       //var form= new FormData(document.getElementById(formname));
-       //form.set('id',id);
-        $.ajax({
-            url:"{{ url_for('is_book_avalable') }}",
-            type:"post",
-            data:{isbn: isbn,msg: "判断是否空闲"},
-            dataType: 'json',
-            success:function(data){
-                if(data['state']=="202"){
-                    alert(data['msg']);
-                    var id=prompt("请输入你的id","");
-                    $.ajax({
-                    url:"{{ url_for('doreservebook') }}",
-                    type:"post",
-                    data:{isbn: isbn, id: id},
-                    dataType: 'json',
-                    success:function(data){
-                         alert(data['msg']);
-                         window.location.reload()
-                    },
-                    error:function(e){
-                            alert("error");
-                    }
-                })
+        function del() {
+           if(window.confirm("请确定给该读者办理预约业务"))
+               return true;
+           else
+               return false;
                 }
-                else{
-                    alert(data['msg']);
-                }
+       if(del()) {
+           $.ajax({
+               url: "{{ url_for('is_book_avalable') }}",
+               type: "post",
+               data: {isbn: isbn, msg: "判断是否空闲"},
+               dataType: 'json',
+               success: function (data) {
+                   if (data['state'] == "202") {
+                       alert(data['msg']);
+                       var id = prompt("请输入你的id", "");
+                       $.ajax({
+                           url: "{{ url_for('doreservebook') }}",
+                           type: "post",
+                           data: {isbn: isbn, id: id},
+                           dataType: 'json',
+                           success: function (data) {
+                               alert(data['msg']);
+                               window.location.reload()
+                           },
+                           error: function (e) {
+                               alert("error");
+                           }
+                       })
+                   } else {
+                       alert(data['msg']);
+                   }
 
-                //window.location.reload()
-            },
-            error:function(e){
-                    alert("error");
-            }
-        })
+                   //window.location.reload()
+               },
+               error: function (e) {
+                   alert("error");
+               }
+           })
+       }
     }
 </script>
 {% endblock %}
