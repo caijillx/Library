@@ -2,7 +2,7 @@
 from LibraryApp import app
 
 from flask import render_template, redirect, session, url_for, flash, request, jsonify
-from LibraryApp.forms import LoginForm
+from LibraryApp.forms import LoginForm, PwdForm
 from LibraryApp.func import fine_of_returnbook, reserve_email
 from LibraryApp.models import *
 from functools import wraps
@@ -194,15 +194,15 @@ def doborrowbook():
                 'status': book.status
             }
         )
-    print("book_id:" ,book_id)
-    print("isbn:" ,isbn)
-    print("id:",id)
-    print("user_id:" ,user_id)
+    print("book_id:", book_id)
+    print("isbn:", isbn)
+    print("id:", id)
+    print("user_id:", user_id)
     reader_id = Reader.query.filter_by(id=id).first()
     if reader_id != None:
         # 查询读者借书总数有无超过十本
         bookcount = BorrowInfo.query.filter(BorrowInfo.reader_id == id, BorrowInfo.return_date == None).count()
-        print("bookcount:" ,bookcount)
+        print("bookcount:", bookcount)
         if bookcount >= 10:
             return jsonify({"state": 103, "msg": "借阅成功"})  # 超出借书数量
         # 插入借书记录
@@ -230,6 +230,7 @@ def doborrowbook():
     else:
         # id在数据库中找不到
         return jsonify({"state": 107, "msg": "没有这个id!"})
+
 
 # 借书界面的搜索功能
 @app.route('/searchbook', methods=['POST', 'GET'])
@@ -304,7 +305,7 @@ def searchreader():
 
 
 # 预约界面(主要显示读者的预约信息)
-@app.route('/orderbook' ,methods=['POST', 'GET'])
+@app.route('/orderbook', methods=['POST', 'GET'])
 @admin_login_req
 def orderbook():
     id = request.args.get('id')
@@ -344,22 +345,24 @@ def orderbook():
         return render_template('orderbook.html', readerinfo=reserveinfo_list_dict)
     return render_template('orderbook.html')
 
-#取预约书操作
-@app.route('/getorderbook' ,methods=['POST', 'GET'])
+
+# 取预约书操作
+@app.route('/getorderbook', methods=['POST', 'GET'])
 @admin_login_req
 def getorderbook():
     user_id = session['user_id']
     isbn = request.form.get('isbn')
     reader_id = request.form.get('reader_id')
     reserve_date = request.form.get('reserve_date')
-    reserve_info = ReserveInfo.query.filter(ReserveInfo.isbn == isbn ,ReserveInfo.reader_id == reader_id ,ReserveInfo.reserve_date == reserve_date).first()
-    if(reserve_info):
+    reserve_info = ReserveInfo.query.filter(ReserveInfo.isbn == isbn, ReserveInfo.reader_id == reader_id,
+                                            ReserveInfo.reserve_date == reserve_date).first()
+    if (reserve_info):
         try:
-            #修改预约信息状态
+            # 修改预约信息状态
             reserve_info.status = "已取书"
             db.session.commit()
-            #查询isbn中状态为已预约的书，修改状态为已借出
-            book_info = BookInfo.query.filter(BookInfo.isbn == isbn ,BookInfo.status == "已预约").first()
+            # 查询isbn中状态为已预约的书，修改状态为已借出
+            book_info = BookInfo.query.filter(BookInfo.isbn == isbn, BookInfo.status == "已预约").first()
             book_id = book_info.book_id
             book_info.status = "已借出"
             db.session.commit()
@@ -380,8 +383,8 @@ def getorderbook():
             return jsonify({"state": 105, "msg": e})  # 由borrowbook的ajax接受，弹窗显示
     return jsonify({"state": 105, "msg": "未知错误，抱歉"})  # 由borrowbook的ajax接受，弹窗显示
 
-
     pass
+
 
 # 查询isbn是否有可借的书本
 @app.route('/is_book_avalable', methods=['POST'])
@@ -495,7 +498,7 @@ def doreturnbook():
     # print(isbn+','+id)
     borrowinfo = BorrowInfo.query.filter(BorrowInfo.reader_id == reader_id, BorrowInfo.book_id == book_id
                                          , BorrowInfo.borrow_date == borrow_date).first()
-    reserveinfo = ReserveInfo.query.filter(ReserveInfo.isbn == borrowinfo.book.isbn ,ReserveInfo.status == "等待").first()
+    reserveinfo = ReserveInfo.query.filter(ReserveInfo.isbn == borrowinfo.book.isbn, ReserveInfo.status == "等待").first()
 
     # 有人预约
     if reserveinfo:
@@ -655,3 +658,18 @@ def add_bookisbn():
     except Exception as e:
         print(e)
         return json.dumps({"state": 0, "message": e})
+
+
+@app.route('/change_pwd', methods=['GET', 'POST'])
+@admin_login_req
+def change_pwd():
+    form = PwdForm()
+    if form.validate_on_submit():
+        data = form.data
+        admin = Admin.query.filter_by(user_name=session["user"]).first()
+        admin.pswd = encryption(data["new_pwd"])
+        db.session.add(admin)
+        db.session.commit()
+        flash("修改密码成功，请重新登录！", "ok")
+        return redirect(url_for("change_pwd"))
+    return render_template("change_pwd.html", form=form)

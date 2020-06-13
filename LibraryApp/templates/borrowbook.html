@@ -1,56 +1,56 @@
 {% extends "demo.html" %}
-    <!-- 另外的模版-->
-    <link rel="shortcut icon" type="image/png" href="static/assets/images/icon/favicon.ico">
-    <link rel="stylesheet" href="static/assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="static/assets/css/font-awesome.min.css">
-    <link rel="stylesheet" href="static/assets/css/themify-icons.css">
-    <link rel="stylesheet" href="static/assets/css/metisMenu.css">
-    <link rel="stylesheet" href="static/assets/css/owl.carousel.min.css">
-    <link rel="stylesheet" href="static/assets/css/slicknav.min.css">
-    <!-- amchart css -->
-    <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
-    <!-- others css -->
-    <link rel="stylesheet" href="static/assets/css/typography.css">
-    <link rel="stylesheet" href="static/assets/css/default-css.css">
-    <link rel="stylesheet" href="static/assets/css/styles.css">
-    <link rel="stylesheet" href="static/assets/css/responsive.css">
-    <!-- modernizr css -->
-    <script src="static/assets/js/vendor/modernizr-2.8.3.min.js"></script>
+<!-- 另外的模版-->
+<link rel="shortcut icon" type="image/png" href="static/assets/images/icon/favicon.ico">
+<link rel="stylesheet" href="static/assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="static/assets/css/font-awesome.min.css">
+<link rel="stylesheet" href="static/assets/css/themify-icons.css">
+<link rel="stylesheet" href="static/assets/css/metisMenu.css">
+<link rel="stylesheet" href="static/assets/css/owl.carousel.min.css">
+<link rel="stylesheet" href="static/assets/css/slicknav.min.css">
+<!-- amchart css -->
+<link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all"/>
+<!-- others css -->
+<link rel="stylesheet" href="static/assets/css/typography.css">
+<link rel="stylesheet" href="static/assets/css/default-css.css">
+<link rel="stylesheet" href="static/assets/css/styles.css">
+<link rel="stylesheet" href="static/assets/css/responsive.css">
+<!-- modernizr css -->
+<script src="static/assets/js/vendor/modernizr-2.8.3.min.js"></script>
 
 {% block content %}
 
     {% if books %}
         <div class="row align-items-center">
-                    <!-- nav and search button -->
-                    <div class="col-md-6 col-sm-8 clearfix">
-                        <div class="nav-btn pull-left">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                        <div class="search-box pull-left">
-                            <form action="searchbook">
-                                <input type="text" name="keywords" placeholder="Search..." required>
-                                <input type="submit"  class="ui primary button" value="查询">
-                                <i class="ti-search"></i>
-                            </form>
-                        </div>
-                    </div>
+            <!-- nav and search button -->
+            <div class="col-md-6 col-sm-8 clearfix">
+                <div class="nav-btn pull-left">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="search-box pull-left">
+                    <form action="searchbook">
+                        <input type="text" name="keywords" placeholder="Search..." required>
+                        <input type="submit" class="ui primary button" value="查询">
+                        <i class="ti-search"></i>
+                    </form>
+                </div>
+            </div>
         </div>
         <table class="table text-center">
             <thead class="text-uppercase bg-primary">
-                <tr class="text-white">
-                    <th scope="col">ISBN</th>
-                    <th scope="col">书名</th>
-                    <th scope="col">作者</th>
-                    <th scope="col">出版社</th>
-                    <th scope="col">出版日期</th>
-                </tr>
+            <tr class="text-white">
+                <th scope="col">ISBN</th>
+                <th scope="col">书名</th>
+                <th scope="col">作者</th>
+                <th scope="col">出版社</th>
+                <th scope="col">出版日期</th>
+            </tr>
             </thead>
             <tbody>
             {% for book in books %}
                 <tr>
-                    <th scope="row"><a href = 'borrowbook?bookisbn={{ book.isbn }}'>{{ book.isbn }}</a></th>
+                    <th scope="row"><a href='borrowbook?bookisbn={{ book.isbn }}'>{{ book.isbn }}</a></th>
                     <th scope="row">{{ book.name }}</th>
                     <th scope="row">{{ book.author }}</th>
                     <th scope="row">{{ book.publisher }}</th>
@@ -63,37 +63,37 @@
     {% elif bookinfo %}
         <table class="table text-center">
             <thead class="text-uppercase bg-primary">
-                <tr class="text-white">
-                    <th scope="col">ID</th>
-                    <th scope="col">Isbn</th>
-                    <th scope="col">location</th>
-                    <th scope="col">status</th>
-                    <th scope="col">action</th>
-                </tr>
+            <tr class="text-white">
+                <th scope="col">ID</th>
+                <th scope="col">Isbn</th>
+                <th scope="col">location</th>
+                <th scope="col">status</th>
+                <th scope="col">action</th>
+            </tr>
             </thead>
             <tbody>
-                {% for book in bookinfo %}
+            {% for book in bookinfo %}
                 <tr>
                     <form class="ui form segment" id="form{{ loop.index }}" method="post" action="#">
-                    <th scope="row">{{ book.book_id }}</th>
-                    <th scope="row">{{ book.isbn }}</th>
-                    <th scope="row">{{ book.location }}</th>
-                    <th scope="row">{{ book.status }}</th>
-                    <input type='hidden' name='book_id' value='{{ book.book_id }}'>
-                    <input type='hidden' name='isbn' value='{{ book.isbn }}'>
-                    {% if book.status == "未借出" %}
-                        <th scope="row">
-                            <button class="ui primary button" onclick="borrowbookajaxForm({{ loop.index }})">
-                                借书
-                            </button>
-                        </th>
-                    {% else %}
-                        <th scope="row">不可借</th>
-                    {% endif %}
+                        <th scope="row">{{ book.book_id }}</th>
+                        <th scope="row">{{ book.isbn }}</th>
+                        <th scope="row">{{ book.location }}</th>
+                        <th scope="row">{{ book.status }}</th>
+                        <input type='hidden' name='book_id' value='{{ book.book_id }}'>
+                        <input type='hidden' name='isbn' value='{{ book.isbn }}'>
+                        {% if book.status == "未借出" %}
+                            <th scope="row">
+                                <button class="ui primary button" onclick="borrowbookajaxForm({{ loop.index }})">
+                                    借书
+                                </button>
+                            </th>
+                        {% else %}
+                            <th scope="row">不可借</th>
+                        {% endif %}
                     </form>
                 </tr>
 
-                {% endfor %}
+            {% endfor %}
             </tbody>
         </table>
         <button class="ui primary button" onclick=reservebook("{{ bookinfo[0].isbn }}")>预约</button>
@@ -102,77 +102,81 @@
     {% endif %}
 {% endblock %}
 {% block js %}
-<script type="text/javascript">
-   function borrowbookajaxForm(index){
-       var formname = "form" + index;
-       function del() {
-           if(window.confirm("请确定给该读者办理借书业务"))
-               return true;
-           else
-               return false;
-                }
-       if(del()) {
-           var id = prompt("请输入你的id", "");
-           var form = new FormData(document.getElementById(formname));
-           form.set('id', id);
-           $.ajax({
-               url: "{{ url_for('doborrowbook') }}",
-               type: "post",
-               data: form,
-               dataType: 'json',
-               processData: false,
-               contentType: false,
-               success: function (data) {
-                   alert(data['msg']);
-                   window.location.reload()
-               },
-               error: function (e) {
-                   alert("error");
-               }
-           })
-       }
-    }
-   function reservebook(isbn){
-        function del() {
-           if(window.confirm("请确定给该读者办理预约业务"))
-               return true;
-           else
-               return false;
-                }
-       if(del()) {
-           $.ajax({
-               url: "{{ url_for('is_book_avalable') }}",
-               type: "post",
-               data: {isbn: isbn, msg: "判断是否空闲"},
-               dataType: 'json',
-               success: function (data) {
-                   if (data['state'] == "202") {
-                       alert(data['msg']);
-                       var id = prompt("请输入你的id", "");
-                       $.ajax({
-                           url: "{{ url_for('doreservebook') }}",
-                           type: "post",
-                           data: {isbn: isbn, id: id},
-                           dataType: 'json',
-                           success: function (data) {
-                               alert(data['msg']);
-                               window.location.reload()
-                           },
-                           error: function (e) {
-                               alert("error");
-                           }
-                       })
-                   } else {
-                       alert(data['msg']);
-                   }
+    <script type="text/javascript">
+        function borrowbookajaxForm(index) {
+            var formname = "form" + index;
 
-                   //window.location.reload()
-               },
-               error: function (e) {
-                   alert("error");
-               }
-           })
-       }
-    }
-</script>
+            function del() {
+                if (window.confirm("请确定给该读者办理借书业务"))
+                    return true;
+                else
+                    return false;
+            }
+
+            if (del()) {
+                var id = prompt("请输入你的id", "");
+                var form = new FormData(document.getElementById(formname));
+                form.set('id', id);
+                $.ajax({
+                    url: "{{ url_for('doborrowbook') }}",
+                    type: "post",
+                    data: form,
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    success: function (data) {
+                        alert(data['msg']);
+                        window.location.reload()
+                    },
+                    error: function (e) {
+                        alert("error");
+                    }
+                })
+            }
+        }
+
+        function reservebook(isbn) {
+            function del() {
+                if (window.confirm("请确定给该读者办理预约业务"))
+                    return true;
+                else
+                    return false;
+            }
+
+            if (del()) {
+                $.ajax({
+                    url: "{{ url_for('is_book_avalable') }}",
+                    type: "post",
+                    data: {isbn: isbn, msg: "判断是否空闲"},
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data['state'] == "202") {
+                            alert(data['msg']);
+                            var id = prompt("请输入你的id", "");
+                            $.ajax({
+                                url: "{{ url_for('doreservebook') }}",
+                                type: "post",
+                                data: {isbn: isbn, id: id},
+                                dataType: 'json',
+                                success: function (data) {
+                                    alert(data['msg']);
+                                    window.location.reload()
+                                },
+                                error: function (e) {
+                                    alert("error");
+                                }
+                            })
+                        } else {
+                            alert(data['msg']);
+                        }
+
+                        //window.location.reload()
+                    },
+                    error: function (e) {
+                        alert("error");
+                    }
+                })
+            }
+        }
+    </script>
 {% endblock %}

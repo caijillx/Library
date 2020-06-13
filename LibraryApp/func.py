@@ -206,3 +206,6 @@ def encryption(password):
     pswd = password.encode('utf-8')
     encrpted_pswd = sha256(pswd).hexdigest()
     return encrpted_pswd
+
+
+

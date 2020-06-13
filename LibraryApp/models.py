@@ -2,17 +2,19 @@
 # coding: utf-8
 from datetime import datetime
 from LibraryApp import db
+from LibraryApp.func import encryption
+
 
 class Admin(db.Model):
     __tablename__ = 'admin'
 
     user_id = db.Column(db.String(30), primary_key=True)
     user_name = db.Column(db.String(30))
-    pswd = db.Column(db.String(30))
+    pswd = db.Column(db.String(255))
 
+    def check_pwd(self, pwd):
+        return self.pswd == encryption(pwd)
 
-    def check_pwd(self,pwd):
-        return self.pswd == pwd
 
 class Reader(db.Model):
     __tablename__ = 'reader'
@@ -55,9 +57,9 @@ class ReserveInfo(db.Model):
 
     reader_id = db.Column(db.ForeignKey('reader.id'), primary_key=True, nullable=False)
     isbn = db.Column(db.ForeignKey('book.isbn'), primary_key=True, nullable=False, index=True)
-    reserve_date = db.Column(db.String, primary_key=True, nullable=False)#预约的日期
-    status = db.Column(db.String(30))#等待、已通知、已完成
-    inform_date = db.Column(db.String(30)) #通知取书的日期
+    reserve_date = db.Column(db.String, primary_key=True, nullable=False)  # 预约的日期
+    status = db.Column(db.String(30))  # 等待、已通知、已完成
+    inform_date = db.Column(db.String(30))  # 通知取书的日期
     agent_id = db.Column(db.ForeignKey('admin.user_id'), index=True)
 
     agent = db.relationship('Admin')
