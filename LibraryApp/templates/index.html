@@ -1,4 +1,15 @@
 {% extends "demo.html" %}
 {% block content %}
-    <p>欢迎来到主页！</p>
+    <p style="color: white;font-size: 80px;margin: 200px ;text-align: center">
+        <text>欢迎登录，{{ username }}!</text>
+    </p>
+{% endblock %}
+
+{% block css %}
+    <style>
+        body {
+            background-image: url("../static/library.jpg");
+            background-size: cover;
+        }
+    </style>
 {% endblock %}

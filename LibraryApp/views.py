@@ -28,7 +28,7 @@ def admin_login_req(f):
 @app.route('/')
 @admin_login_req
 def index():
-    return render_template('index.html')
+    return render_template('index.html', username=session["user"])
 
 
 # 登录界面
