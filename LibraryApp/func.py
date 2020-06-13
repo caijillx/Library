@@ -5,7 +5,9 @@ is_book_id_correct
 is_reader_id_correct
 book_available 判断该书籍是否有库存
 send_email
-reserve_email
+reserve_email 通知预约读者取书
+due_email   催读者还书
+timer_task 每天催还有三天到期的读者还书
 fine_of_returnbook 还书的罚金计算
 encryption 密码加密
 '''
@@ -140,11 +142,37 @@ def reserve_email(reader_id, book_id):
                                                                                                     reader_id,
                                                                                                     book_name,
                                                                                                     isbn)
-        print(context)
+        print("From reserve_email:\n", context)
         send_email(to_addr, context)
 
-def due_email():
+def due_email(reader_id, book_id):
+    '''
+    发送邮件催借阅人还书
+    :param reader_id:
+    :param book_id:
+    :return:
+    '''
+    if is_reader_id_correct(reader_id) and is_book_id_correct(book_id):
+        reader_obj = Reader.query.filter(Reader.id == reader_id).first()
+        reader_name = reader_obj.name
+        to_addr = reader_obj.Email
+        isbn = BookInfo.query.filter(BookInfo.book_id == book_id).first().isbn
+        book_name = Book.query.filter(Book.isbn == isbn).first().name
+        context = "亲爱的读者{}(读者号：{})您好：\n\n     您借阅的图书《{}》({})将在3天后到期，请按时前往图书馆归还或续借图书。谢谢\n\n校图书管理系统".format(reader_name,
+                                                                                                    reader_id,
+                                                                                                    book_name,
+                                                                                                    isbn)
+        print("From due_email:\n", context)
+        #send_email(to_addr, context)
     pass
+
+
+def timer_task():
+    cur_date = datetime.date.today()  # datetime.date
+    borrow_objs = BorrowInfo.query.filter().all()  # list，每项为一个 记录 对象
+    for obj in borrow_objs:
+        if obj.due_date - cur_date == datetime.timedelta(days=3) and obj.return_date == None:
+            due_email(obj.reader_id, obj.book_id)
 
 
 def fine_of_returnbook(due_date):
