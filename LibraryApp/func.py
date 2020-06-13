@@ -6,6 +6,8 @@ is_reader_id_correct
 book_available 判断该书籍是否有库存
 send_email
 reserve_email
+fine_of_returnbook 还书的罚金计算
+encryption 密码加密
 '''
 
 from datetime import datetime
@@ -13,6 +15,7 @@ from LibraryApp.models import *
 from sqlalchemy import and_, or_, not_
 import re
 import datetime
+from hashlib import sha256
 
 # smtplib 用于邮件的发信动作
 import smtplib
@@ -144,10 +147,12 @@ def due_email():
     pass
 
 
-"""
-还书的罚金
-"""
 def fine_of_returnbook(due_date):
+    '''
+    还书的罚金
+    :param due_date:
+    :return:
+    '''
     now_date = datetime.datetime.now()
     print(now_date,due_date)
     due_date = due_date.strftime("%Y-%m-%d")+" 00:00:00"
@@ -163,3 +168,13 @@ def fine_of_returnbook(due_date):
 
     return 0.0 #无罚金
 
+
+def encryption(password):
+    '''
+
+    :param password: str 用户输入的密码
+    :return: encrpted_pswd str 加密后的密码
+    '''
+    pswd = password.encode('utf-8')
+    encrpted_pswd = sha256(pswd).hexdigest()
+    return encrpted_pswd
