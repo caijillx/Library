@@ -7,7 +7,7 @@ from LibraryApp.func import *
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler = BackgroundScheduler()
-# 间隔3秒钟执行一次
-scheduler.add_job(timer_task, 'interval', seconds=30, args=[BorrowInfo])
+# 间隔30秒钟执行一次
+scheduler.add_job(timer_task, 'interval', seconds=5, args=[BorrowInfo])
 # 这里的调度任务是独立的一个线程
 scheduler.start()

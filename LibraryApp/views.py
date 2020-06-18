@@ -596,7 +596,7 @@ def add_bookinfo():
             book_info = BookInfo()
             book_info.book_id = book_ids[index]
             book_info.isbn = isbn
-            book_info.status = "未借出" if locations[0] == "图书流通室" else "不外借"
+            book_info.status = "未借出" if locations[index] == "图书流通室" else "不外借"
             book_info.agent_id = agent_id
             book_info.location = location
             print(book_info)

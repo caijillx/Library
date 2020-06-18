@@ -1,7 +1,7 @@
 from LibraryApp import app
 from flask_script import Manager
 from LibraryApp.models import *
-import LibraryApp.timer
+from LibraryApp.timer import *
 
 manager = Manager(app)
 
