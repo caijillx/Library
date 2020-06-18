@@ -139,11 +139,12 @@ def reserve_email(reader_id, book_id):
         isbn = BookInfo.query.filter(BookInfo.book_id == book_id).first().isbn
         book_name = Book.query.filter(Book.isbn == isbn).first().name
         context = "亲爱的读者{}(读者号：{})您好：\n\n     您预定的图书《{}》({})现已有库存，请即使前往图书馆领取图书。谢谢\n\n校图书管理系统".format(reader_name,
-                                                                                                    reader_id,
-                                                                                                    book_name,
-                                                                                                    isbn)
+                                                                                                     reader_id,
+                                                                                                     book_name,
+                                                                                                     isbn)
         print("From reserve_email:\n", context)
         send_email(to_addr, context)
+
 
 def due_email(reader_id, book_id):
     '''
@@ -159,19 +160,20 @@ def due_email(reader_id, book_id):
         isbn = BookInfo.query.filter(BookInfo.book_id == book_id).first().isbn
         book_name = Book.query.filter(Book.isbn == isbn).first().name
         context = "亲爱的读者{}(读者号：{})您好：\n\n     您借阅的图书《{}》({})将在3天后到期，请按时前往图书馆归还或续借图书。谢谢\n\n校图书管理系统".format(reader_name,
-                                                                                                    reader_id,
-                                                                                                    book_name,
-                                                                                                    isbn)
+                                                                                                          reader_id,
+                                                                                                          book_name,
+                                                                                                          isbn)
         print("From due_email:\n", context)
-        #send_email(to_addr, context)
+        # send_email(to_addr, context)
     pass
 
 
-def timer_task():
+def timer_task(BorrowInfo):
     cur_date = datetime.date.today()  # datetime.date
+    print(cur_date)
     borrow_objs = BorrowInfo.query.filter().all()  # list，每项为一个 记录 对象
     for obj in borrow_objs:
-        if obj.due_date - cur_date == datetime.timedelta(days=3) and obj.return_date == None:
+        if obj.due_date - cur_date == datetime.timedelta(days=3) and obj.return_date is None:
             due_email(obj.reader_id, obj.book_id)
 
 
@@ -182,19 +184,19 @@ def fine_of_returnbook(due_date):
     :return:
     '''
     now_date = datetime.datetime.now()
-    print(now_date,due_date)
-    due_date = due_date.strftime("%Y-%m-%d")+" 00:00:00"
+    print(now_date, due_date)
+    due_date = due_date.strftime("%Y-%m-%d") + " 00:00:00"
     print(due_date)
     due_date = datetime.datetime.strptime(due_date, "%Y-%m-%d %H:%M:%S")
-    deltadate = now_date-due_date
-    #print(deltadate.days)
+    deltadate = now_date - due_date
+    # print(deltadate.days)
     days = deltadate.days
     if days > 0:
-        fine = days*0.3 #罚金，超一天三毛钱
-        #print("fine:",fine)
+        fine = days * 0.3  # 罚金，超一天三毛钱
+        # print("fine:",fine)
         return fine
 
-    return 0.0 #无罚金
+    return 0.0  # 无罚金
 
 
 def encryption(password):
@@ -206,6 +208,3 @@ def encryption(password):
     pswd = password.encode('utf-8')
     encrpted_pswd = sha256(pswd).hexdigest()
     return encrpted_pswd
-
-
-
